@@ -8,6 +8,7 @@ The purpose of this file is to outline what is done, what needs to be done, and 
 [x] Helper function to calculate tax at checkout
 [ ] Helper functions to send transaction to Avalara
 [ ] Helper functions to update transactions in Avalara
+[?] Should we be using 'singleLocation'? or 'shipFrom'/'shipTo'?
 
 /includes/functions.php
 [x] Function to get product category for a given level
@@ -20,6 +21,7 @@ The purpose of this file is to outline what is done, what needs to be done, and 
 /includes/checkout.php
 [ ] Show tax that will be charged on checkout page
 [ ] Add VAT fields if necessary
+[ ] Always show billing fields if necessary
 [?] Should tax be updated automatically or only when user reqeusts?
 
 /includes/adminpages/avatax-settings.php
@@ -28,7 +30,7 @@ The purpose of this file is to outline what is done, what needs to be done, and 
 [x] Menu page to update PMPro AvaTax settings
 [x] Throw error if AvaTax credentials are invalid
 [ ] Validation for company address
-[?] What other settings do we need? VAT? Document Recording?
+[?] What other settings do we need? VAT? Document Recording? Backcalculation?
 
 /includes/adminpages/edit-level.php
 /js/pmproava-edit-level.js
