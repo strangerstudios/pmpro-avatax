@@ -67,13 +67,13 @@ function pmproava_get_options() {
 		$set_options = is_array( $set_options ) ? $set_options : array();
 
 		$default_address = new stdClass();
-		$default_address->line1 = '837 Winya Ave';
+		$default_address->line1 = '';
 		$default_address->line2 = '';
 		$default_address->line3 = '';
-		$default_address->city = 'Westfielddd';
-		$default_address->region = 'NJ';
-		$default_address->postalCode = '07091';
-		$default_address->country = 'US';
+		$default_address->city = '';
+		$default_address->region = '';
+		$default_address->postalCode = '';
+		$default_address->country = '';
 
 		$default_options = array(
 			'account_number'  => '',
