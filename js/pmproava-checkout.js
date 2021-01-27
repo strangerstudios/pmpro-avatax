@@ -25,20 +25,18 @@ jQuery(document).ready(function(){
 							'region': region
 						},
 						success:function(data) {
-							console.log(data);
-							jQuery("#pmproava_tax_estimate").html("Based on your location you will be charged <b>"+ data + "</b> sales tax");
+							jQuery("#pmproava_tax_estimate").html("Based on your location you will be charged <b>"+ data.tax_formatted + "</b> sales tax");
 						},
 						error: function(error){
-							console.log(this.url);
 							jQuery("#pmproava_tax_estimate").html("AvaTax API call failed. See JavaScript console for error message.");
-							console.log(error);
+							console.log(error.responseJSON);
 						}
 					});
 				}
 			},
 			error: function(error){
 				jQuery("#pmproava_tax_estimate").html("checkout_levels API call failed. See JavaScript console for error message.");
-				console.log(error);
+				console.log(error.responseJSON);
 			}
 		});
 	});

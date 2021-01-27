@@ -29,7 +29,7 @@ function pmproava_level_settings( $level_id ) {
   	</table>
 
 	<?php
-	$pmproava_address_model = get_address_model( $level_id );
+	$pmproava_address_model = pmproava_get_product_address_model( $level_id );
 	?>
 	<table id="address_model" class="form-table">
 		<tbody>

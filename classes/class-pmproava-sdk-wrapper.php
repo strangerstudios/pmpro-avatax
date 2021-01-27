@@ -64,6 +64,8 @@ class PMProava_SDK_Wrapper {
 		);
 		if ( ! empty( $response->messages ) ) {
 			// Invalid address.
+			global $pmproava_error;
+			$pmproava_error = 'Error while validating address: ' . $response->messages[0]->summary;
 			return null;
 		}
 		return $response->validatedAddresses[0];
@@ -83,6 +85,8 @@ class PMProava_SDK_Wrapper {
 	 */
 	private function get_transaction_mode( $price, $product_category, $product_address_model, $billing_address = null, $document_type = Avalara\DocumentType::C_SALESORDER, $customer_code = '0', $retroactive_tax = false ) {
 		if ( ! $this->check_credentials() ) {
+			global $pmproava_error;
+			$pmproava_error = "Could not validate credentiasl in 'get_transaction_mode()'";
 			return null;
 		}
 
@@ -90,7 +94,7 @@ class PMProava_SDK_Wrapper {
 		$pmproava_options = pmproava_get_options();
 		$validated_company_address = $this->validate_address( $pmproava_options['company_address'] );
 		if ( empty( $validated_company_address ) ) {
-			// Invalid company address.
+			// Invalid company address. Error would have been thrown in that function.
 			return null;
 		}
 
@@ -119,7 +123,7 @@ class PMProava_SDK_Wrapper {
 			case 'shipToFrom':
 				$validated_billing_address = $this->validate_address( $billing_address );
 				if ( empty( $validated_billing_address ) ) {
-					// Invalid address.
+					// Invalid address. Error would have been thrown in that function.
 					return null;
 				}
 				$transaction_builder->withAddress(
@@ -172,6 +176,7 @@ class PMProava_SDK_Wrapper {
 	public function calculate_tax( $price, $product_category, $product_address_model, $billing_address = null, $retroactive_tax = false ) {
 		$transaction_mode = $this->get_transaction_mode( $price, $product_category, $product_address_model, $billing_address, Avalara\DocumentType::C_SALESORDER, '0', $retroactive_tax );
 		if ( empty( $transaction_mode ) ) {
+			// Error would have been thrown in get_transaction_mode.
 			return null;
 		}
 		return $transaction_mode->totalTax;

@@ -28,35 +28,36 @@ if ( class_exists( 'WP_REST_Controller' ) ) {
 		 * Example: https://example.com/wp-json/pmpro/v1/has_membership_access?post_id=58&user_id=2
 		 */
 		function pmproava_rest_api_calculate_tax_at_checkout( $request ) {
+			global $pmproava_error;
 			$params = $request->get_params();
 
 			$level_id = isset( $params['level_id'] ) ? intval( $params['level_id'] ) : null;
 			if ( null === $level_id ) {
-				return new WP_REST_Response( 'level_id not passed through.', 400 );
+				return new WP_REST_Response( 'pmpro-avatax error: level_id not passed through.', 400 );
 			}
 			$price = isset( $params['price'] ) ? floatval( $params['price'] ) : null;
 			if ( null === $price ) {
-				return new WP_REST_Response( 'price not passed through.', 400 );
+				return new WP_REST_Response( 'pmpro-avatax error: price not passed through.', 400 );
 			}
 			$line1 = isset( $params['line1'] ) ? sanitize_text_field( $params['line1'] ) : null;
 			if ( null === $line1 ) {
-				return new WP_REST_Response( 'line1 not passed through.', 400 );
+				return new WP_REST_Response( 'pmpro-avatax error: line1 not passed through.', 400 );
 			}
 			$city = isset( $params['city'] ) ? sanitize_text_field( $params['city'] ) : null;
 			if ( null === $city ) {
-				return new WP_REST_Response( 'city not passed through.', 400 );
+				return new WP_REST_Response( 'pmpro-avatax error: city not passed through.', 400 );
 			}
 			$region = isset( $params['region'] ) ? sanitize_text_field( $params['region'] ) : null;
 			if ( null === $region ) {
-				return new WP_REST_Response( 'region not passed through.', 400 );
+				return new WP_REST_Response( 'pmpro-avatax error: region not passed through.', 400 );
 			}
 			$postalCode = isset( $params['postalCode'] ) ? sanitize_text_field( $params['postalCode'] ) : null;
 			if ( null === $postalCode ) {
-				return new WP_REST_Response( 'postalCode not passed through.', 400 );
+				return new WP_REST_Response( 'pmpro-avatax error: postalCode not passed through.', 400 );
 			}
 			$country = isset( $params['country'] ) ? sanitize_text_field( $params['country'] ) : null;
 			if ( null === $country ) {
-				return new WP_REST_Response( 'country not passed through.', 400 );
+				return new WP_REST_Response( 'pmpro-avatax error: country not passed through.', 400 );
 			}
 
 			$order = new MemberOrder();
@@ -71,7 +72,15 @@ if ( class_exists( 'WP_REST_Controller' ) ) {
 			$order->billing->country = $country;
 			$tax = $order->getTax();
 
-			return new WP_REST_Response( $tax, 200 );
+			if ( ! empty( $pmproava_error ) ) {
+				return new WP_REST_Response( 'pmpro-avatax error: ' . $pmproava_error, 400 );
+			}
+
+			$response = new stdClass();
+			$response->status = 'success';
+			$response->tax = $tax;
+			$response->tax_formatted = pmpro_formatPrice( $tax );
+			return new WP_REST_Response( $response, 200 );
 		}
 
 		/**
