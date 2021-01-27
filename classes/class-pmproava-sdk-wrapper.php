@@ -53,13 +53,13 @@ class PMProava_SDK_Wrapper {
 	 */
 	public function validate_address( $address ) {
 		$response = $this->AvaTaxClient->resolveAddress(
-			$address->line1,
-			$address->line2,
-			$address->line3,
-			$address->city,
-			$address->region,
-			$address->postalCode,
-			$address->country,
+			isset( $address->line1 ) ? $address->line1 : '',
+			isset( $address->line2 ) ? $address->line2 : '',
+			isset( $address->line3 ) ? $address->line3 : '',
+			isset( $address->city ) ? $address->city : '',
+			isset( $address->region ) ? $address->region : '',
+			isset( $address->postalCode ) ? $address->postalCode : '',
+			isset( $address->country ) ? $address->country : '',
 			'Mixed' // Text case.
 		);
 		if ( ! empty( $response->messages ) ) {
@@ -74,46 +74,84 @@ class PMProava_SDK_Wrapper {
 	 *
 	 * @param float  $price to calculate tax for
 	 * @param string $product_category being purchased
+	 * @param string $product_address_model being purchased
 	 * @param object $billing_address of buyer
 	 * @param string $document_type of transaction
 	 * @param string $customer_code of buyer
 	 * @param bool   $retroactive_tax if tax is included in $price
 	 * @return Avalara\TransactionMode|null
 	 */
-	private function get_transaction_mode( $price, $product_category, $billing_address, $document_type = Avalara\DocumentType::C_SALESORDER, $customer_code = '0', $retroactive_tax = false ) {
+	private function get_transaction_mode( $price, $product_category, $product_address_model, $billing_address = null, $document_type = Avalara\DocumentType::C_SALESORDER, $customer_code = '0', $retroactive_tax = false ) {
 		if ( ! $this->check_credentials() ) {
 			return null;
 		}
 
-		$validated_billing_address = $this->validate_address( $billing_address );
-		if ( empty( $validated_billing_address ) ) {
-			// Invalid address.
+		// Make sure we have a valid company address.
+		$pmproava_options = pmproava_get_options();
+		$validated_company_address = $this->validate_address( $pmproava_options['company_address'] );
+		if ( empty( $validated_company_address ) ) {
+			// Invalid company address.
 			return null;
 		}
 
-		$pmproava_options = pmproava_get_options();
+		// Create a transaction in Avalara.
 		$transaction_builder = new Avalara\TransactionBuilder(
 			$this->AvaTaxClient,
 			$pmproava_options['company_code'],
 			$document_type,
 			$customer_code
 		);
-		$transaction_builder->withAddress(
-			'SingleLocation',
-			$validated_billing_address->line1,
-			$validated_billing_address->line2,
-			$validated_billing_address->line3,
-			$validated_billing_address->city,
-			$validated_billing_address->region,
-			$validated_billing_address->postalCode,
-			$validated_billing_address->country
-		);
+
+		// Set addresses for transaction.
+		switch ( $product_address_model ) {
+			case 'singleLocation':
+				$transaction_builder->withAddress(
+					'SingleLocation',
+					$validated_company_address->line1,
+					$validated_company_address->line2,
+					$validated_company_address->line3,
+					$validated_company_address->city,
+					$validated_company_address->region,
+					$validated_company_address->postalCode,
+					$validated_company_address->country
+				);
+				break;
+			case 'shipToFrom':
+				$validated_billing_address = $this->validate_address( $billing_address );
+				if ( empty( $validated_billing_address ) ) {
+					// Invalid address.
+					return null;
+				}
+				$transaction_builder->withAddress(
+					'shipTo',
+					$validated_billing_address->line1,
+					$validated_billing_address->line2,
+					$validated_billing_address->line3,
+					$validated_billing_address->city,
+					$validated_billing_address->region,
+					$validated_billing_address->postalCode,
+					$validated_billing_address->country
+				);
+				$transaction_builder->withAddress(
+					'shipFrom',
+					$validated_company_address->line1,
+					$validated_company_address->line2,
+					$validated_company_address->line3,
+					$validated_company_address->city,
+					$validated_company_address->region,
+					$validated_company_address->postalCode,
+					$validated_company_address->country
+				);
+		}
+		// Add product to transaction.
 		$transaction_builder->withLine(
 			$price,             // $amount
 			1,                   // $quantity
 			null,                // $itemCode
 			$product_category    // $taxCode
 		);
+
+		// Make tax retroactive if needed.
 		if ( $retroactive_tax ) {
 			$transaction_builder->withLineTaxIncluded();
 		}
@@ -126,12 +164,13 @@ class PMProava_SDK_Wrapper {
 	 *
 	 * @param float  $price to calculate tax for
 	 * @param string $product_category being purchased
+	 * @param string $product_address_model being purchased
 	 * @param object $billing_address of buyer
 	 * @param bool   $retroactive_tax if tax is included in $price
 	 * @return float|null
 	 */
-	public function calculate_tax( $price, $product_category, $billing_address, $retroactive_tax = false ) {
-		$transaction_mode = $this->get_transaction_mode( $price, $product_category, $billing_address, Avalara\DocumentType::C_SALESORDER, '0', $retroactive_tax );
+	public function calculate_tax( $price, $product_category, $product_address_model, $billing_address = null, $retroactive_tax = false ) {
+		$transaction_mode = $this->get_transaction_mode( $price, $product_category, $product_address_model, $billing_address, Avalara\DocumentType::C_SALESORDER, '0', $retroactive_tax );
 		if ( empty( $transaction_mode ) ) {
 			return null;
 		}

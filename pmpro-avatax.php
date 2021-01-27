@@ -14,7 +14,10 @@ define( 'PMPROAVA_DIR', dirname( __FILE__ ) );
 define( 'PMPROAVA_BASENAME', plugin_basename( __FILE__ ) );
 
 require_once PMPROAVA_DIR . '/classes/class-pmproava-sdk-wrapper.php';  // Connect PMPromc to AvaTax.
+
+require_once PMPROAVA_DIR . '/includes/checkout.php';                   // Add fields to checkout.
 require_once PMPROAVA_DIR . '/includes/functions.php';                  // Miscellaneous functions.
+require_once PMPROAVA_DIR . '/includes/rest-api.php';                   // REST API
 
 require_once PMPROAVA_DIR . '/includes/adminpages/avatax-settings.php'; // AvaTax settings page.
 require_once PMPROAVA_DIR . '/includes/adminpages/edit-level.php';      // AvaTax fields on edit level page.

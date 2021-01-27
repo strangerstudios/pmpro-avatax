@@ -29,8 +29,7 @@ function pmproava_level_settings( $level_id ) {
   	</table>
 
 	<?php
-	$pmproava_address_model = get_pmpro_membership_level_meta( $level_id, 'pmproava_address_model', true);
-	$pmproava_address_model = $pmproava_address_model ?: 'shipToFrom';
+	$pmproava_address_model = get_address_model( $level_id );
 	?>
 	<table id="address_model" class="form-table">
 		<tbody>
