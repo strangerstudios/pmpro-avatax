@@ -24,9 +24,14 @@ function pmproava_get_product_address_model( $level_id ) {
 }
 
 function pmproava_tax_filter( $tax, $values, $order ) {
-	$level_id = $order->membership_id;
-	$product_category = pmproava_get_product_category( $level_id );
-	$product_address_model    = pmproava_get_product_address_model( $level_id );
+	$level_id              = $order->membership_id;
+	$product_category      = pmproava_get_product_category( $level_id );
+	$product_address_model = pmproava_get_product_address_model( $level_id );
+
+	$options = pmproava_get_options();
+	$retroactive_tax = $options['retroactive_tax'] === 'yes' ? true : false;
+	// TODO: think through the above line. This may not always be the case. For example,
+	// recurring payments should always be retroactive.
 
 	if ( $product_address_model === 'singleLocation' ) {
 		// Improves caching.
@@ -38,10 +43,7 @@ function pmproava_tax_filter( $tax, $values, $order ) {
 		$billing_address->region = isset( $values['billing_state'] ) ? $values['billing_state'] : '';
 		$billing_address->postalCode = isset( $values['billing_zip'] ) ? $values['billing_zip'] : '';
 		$billing_address->country = isset( $values['billing_country'] ) ? $values['billing_country'] : '';
-	}
-
-	// TODO: Pull this data from somewhere.
-	$retroactive_tax = true;
+	}	
 
 	$cache_key = wp_hash( json_encode( array( $level_id, $product_category, $product_address_model, $billing_address, $retroactive_tax ) ) );
 	static $cache;

@@ -54,6 +54,9 @@ function pmproava_admin_init() {
 	add_settings_field('pmproava_option_company_address_region', __('Region', 'pmpro-avatax'), 'pmproava_option_company_address_region', 'pmproava_options', 'pmproava_section_company');
 	add_settings_field('pmproava_option_company_address_postalCode', __('Postal Code', 'pmpro-avatax'), 'pmproava_option_company_address_postalCode', 'pmproava_options', 'pmproava_section_company');
 	add_settings_field('pmproava_option_company_address_country', __('Country', 'pmpro-avatax'), 'pmproava_option_company_address_country', 'pmproava_options', 'pmproava_section_company');
+
+	add_settings_section('pmproava_section_settings', __('Settings', 'pmpro-avatax'), 'pmproava_section_settings', 'pmproava_options');
+	add_settings_field('pmproava_option_retroactive_tax', __('Include Tax in Level Price', 'pmpro-avatax'), 'pmproava_option_retroactive_tax', 'pmproava_options', 'pmproava_section_settings');
 }
 add_action("admin_init", "pmproava_admin_init");
 
@@ -81,6 +84,7 @@ function pmproava_get_options() {
 			'environment'     => 'sandbox',
 			'company_code'    => '',
 			'company_address' => $default_address,
+			'retroactive_tax' => 'yes',
 		);
 		$options = array_merge( $default_options, $set_options );
 	}
@@ -106,6 +110,9 @@ function pmproava_options_validate($input) {
 	}
 	if ( isset($input['company_address'] ) ) {
 		$newinput['company_address'] = (object)$input['company_address'];
+	}
+	if ( isset($input['retroactive_tax']) && $input['retroactive_tax'] === 'no' ) {
+		$newinput['retroactive_tax'] = 'no';
 	}
 	return $newinput;
 }
@@ -157,13 +164,13 @@ function pmproava_option_environment() {
 	$environment = $options['environment'];
 	?>
 	<select id="pmproava_environment" name="pmproava_options[environment]">
-    	<option value="sandbox" <?php selected( $environment, 'sandbox' ); ?>>
-            <?php _e( 'Sandbox', 'pmpro-avatax' ); ?>
-        </option>
-    	<option value="production" <?php selected( $environment, 'production' ); ?>>
-            <?php _e( 'Production', 'pmpro-avatax' ); ?>
-        </option>
-    </select>
+		<option value="sandbox" <?php selected( $environment, 'sandbox' ); ?>>
+			<?php _e( 'Sandbox', 'pmpro-avatax' ); ?>
+		</option>
+		<option value="production" <?php selected( $environment, 'production' ); ?>>
+			<?php _e( 'Production', 'pmpro-avatax' ); ?>
+		</option>
+	</select>
 	<?php
 }
 
@@ -258,4 +265,29 @@ function pmproava_option_company_address_country() {
 	$options = pmproava_get_options();
 	$company_address_country = $options['company_address']->country;
 	echo "<input id='pmproava_company_address_country' name='pmproava_options[company_address][country]' size='80' type='text' value='" . esc_attr( $company_address_country ) . "' />";
+}
+
+/**
+ * Show warnings on PMProava settings page if settings are not valid.
+ */
+function pmproava_section_settings() {
+
+}
+
+/**
+ * Show "Include Tax in Level Price" field.
+ */
+function pmproava_option_retroactive_tax() {
+	$options = pmproava_get_options();
+	$retroactive_tax = $options['retroactive_tax'];
+	?>
+	<select id="pmproava_retroactive_tax" name="pmproava_options[retroactive_tax]">
+		<option value="yes" <?php selected( $retroactive_tax, 'yes' ); ?>>
+			<?php _e( 'Yes (Reccomended)', 'pmpro-avatax' ); ?>
+		</option>
+		<option value="no" <?php selected( $retroactive_tax, 'no' ); ?>>
+			<?php _e( 'No', 'pmpro-avatax' ); ?>
+		</option>
+	</select>
+	<?php
 }
