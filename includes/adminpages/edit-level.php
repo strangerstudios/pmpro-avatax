@@ -22,7 +22,8 @@ function pmproava_level_settings( $level_id ) {
   					<label for="pmproava_product_id"><?php _e('Product Category ID', 'pmpro-avatax');?>:</label>
   				</th>
   				<td>
-  				  <input type="text" name="pmproava_product_id" value=<?php echo $pmproava_product_category ?>><br>
+  					<input type="text" name="pmproava_product_id" value=<?php echo $pmproava_product_category ?>><br>
+					<small><a href='https://taxcode.avatax.avalara.com'><?php _e('Product Category ID Reference', 'pmpro-avatax');?></a></small>
   				</td>
   			</tr>
 		</tbody>
@@ -41,8 +42,8 @@ function pmproava_level_settings( $level_id ) {
 					<select name="pmproava_address_model">
 						<?php
 							$options = array(
-								'shipToFrom' => 'Variable Location',
-								'singleLocation' => 'Single Location',
+								'shipToFrom' => 'Variable Location (Remote Purchases)',
+								'singleLocation' => 'Single Location (Location-Based Purchases)',
 							);
 							foreach ( $options as $value => $label ) {
 								$selected_text = $pmproava_address_model === $value ? 'selected="selected"' : '';
