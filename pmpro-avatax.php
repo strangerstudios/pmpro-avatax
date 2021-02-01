@@ -21,6 +21,7 @@ require_once PMPROAVA_DIR . '/includes/rest-api.php';                   // REST 
 
 require_once PMPROAVA_DIR . '/includes/adminpages/avatax-settings.php'; // AvaTax settings page.
 require_once PMPROAVA_DIR . '/includes/adminpages/edit-level.php';      // AvaTax fields on edit level page.
+require_once PMPROAVA_DIR . '/includes/adminpages/edit-order.php';      // AvaTax fields on edit level page.
 
 /**
  * Load the languages folder for translations.

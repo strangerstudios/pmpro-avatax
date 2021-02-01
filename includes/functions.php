@@ -163,7 +163,7 @@ function pmproava_send_order_to_avatax( $order ) {
 	$billing_address->country    = $order->billing->country;
 	$customer_code               = pmproava_get_customer_code( $order->user_id );
 	$document_code               = pmproava_get_document_code( $order );
-	$transaction_date            = date( 'Y-m-d', $order->getTimestamp() );
+	$transaction_date            = ! empty( $order->timestamp ) ? $order->getTimestamp( true ) : null;
 
 	$pmproava_sdk_wrapper = PMProava_SDK_Wrapper::get_instance();
 	$success = $pmproava_sdk_wrapper->commit_new_transaction( $price, $product_category, $product_address_model, $billing_address, $customer_code, $document_code, $transaction_date );
@@ -178,7 +178,6 @@ function pmproava_updated_order( $order ) {
 	if ( $pmproava_environment !== $gateway_environment ) {
 		return false;
 	}
-
 	$document_code        = pmproava_get_document_code( $order );
 	$pmproava_sdk_wrapper = PMProava_SDK_Wrapper::get_instance();
 	switch( $order->status ) {
@@ -188,14 +187,25 @@ function pmproava_updated_order( $order ) {
 			if ( ! $pmproava_sdk_wrapper->transaction_exists_for_code( $document_code ) ) {
 				// Send order to Avalara.
 				$success = pmproava_send_order_to_avatax( $order );
+				if ( $success ) {
+					$transaction = $pmproava_sdk_wrapper->get_transaction_by_code( $document_code );
+					if ( ! empty( $transaction ) ) {
+						$order->subtotal = $transaction->totalAmount;
+						$order->tax      = $transaction->totalTax;
+						$order->saveOrder();
+					}
+				} else {
+					global $pmproava_error;
+					echo( $pmproava_error );
+				}
 			}
 			break;
 		case 'refunded':
 			// Check if order has already been sent to Avalara.
 			// If so, set Avalara order to refunded.
 			break;
-		case 'pending':
-		case 'review':
+		case 'pending': // Do we want this here?
+		case 'review':  // Do we want this here?
 		case 'error':
 			// Check if order has already been sent to Avalara.
 			// If so, void order in Avalara.
