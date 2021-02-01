@@ -57,65 +57,9 @@ function pmproava_admin_init() {
 
 	add_settings_section('pmproava_section_settings', __('Settings', 'pmpro-avatax'), 'pmproava_section_settings', 'pmproava_options');
 	add_settings_field('pmproava_option_retroactive_tax', __('Include Tax in Level Price', 'pmpro-avatax'), 'pmproava_option_retroactive_tax', 'pmproava_options', 'pmproava_section_settings');
+	add_settings_field('pmproava_option_site_prefix', __('Site Prefix', 'pmpro-avatax'), 'pmproava_option_site_prefix', 'pmproava_options', 'pmproava_section_settings');
 }
 add_action("admin_init", "pmproava_admin_init");
-
-/**
- * Get PMPro AvaTax options.
- */
-function pmproava_get_options() {
-	static $options = null;
-	if ( $options === null ) {
-		$set_options = get_option('pmproava_options');
-		$set_options = is_array( $set_options ) ? $set_options : array();
-
-		$default_address = new stdClass();
-		$default_address->line1 = '';
-		$default_address->line2 = '';
-		$default_address->line3 = '';
-		$default_address->city = '';
-		$default_address->region = '';
-		$default_address->postalCode = '';
-		$default_address->country = '';
-
-		$default_options = array(
-			'account_number'  => '',
-			'license_key'     => '',
-			'environment'     => 'sandbox',
-			'company_code'    => '',
-			'company_address' => $default_address,
-			'retroactive_tax' => 'yes',
-		);
-		$options = array_merge( $default_options, $set_options );
-	}
-	return $options;
-}
-
-/**
- * Validate Avatax settings.
- */
-function pmproava_options_validate($input) {
-	$newinput = array();
-	if ( isset($input['account_number'] ) ) {
-		$newinput['account_number'] = trim( preg_replace("[^a-zA-Z0-9\-]", "", $input['account_number'] ) );
-	}
-	if ( isset($input['license_key'] ) ) {
-		$newinput['license_key'] = trim( preg_replace("[^a-zA-Z0-9\-]", "", $input['license_key'] ) );
-	}
-	if ( isset($input['environment']) && $input['environment'] === 'production' ) {
-		$newinput['license_key'] = 'production';
-	}
-	if ( isset($input['company_code'] ) ) {
-		$newinput['company_code'] = trim( preg_replace("[^a-zA-Z0-9\-]", "", $input['company_code'] ) );
-	}
-	if ( isset($input['company_address'] ) ) {
-		$newinput['company_address'] = (object)$input['company_address'];
-	}
-	if ( isset($input['retroactive_tax']) && $input['retroactive_tax'] === 'no' ) {
-		$newinput['retroactive_tax'] = 'no';
-	}
-	return $newinput;
-}
 
 /**
  * Show warnings on PMProava settings page if credentials are not valid.
@@ -271,7 +215,19 @@ function pmproava_option_company_address_country() {
  * Show warnings on PMProava settings page if settings are not valid.
  */
 function pmproava_section_settings() {
+	$options = pmproava_get_options();
+	if ( empty( $options['account_number'] ) || empty( $options['license_key'] ) ) {
+		// User has not yet filled out credentials.
+		return;
+	}
 
+	if ( empty( $options['site_prefix'] ) ) {
+		?>
+		<div class="notice notice-warning">
+			<p><strong><?php esc_html_e( 'Setting the "Site Prefix" field is highly reccomended.', 'pmpro-avatax' ); ?></strong></p>
+		</div>
+		<?php
+	}
 }
 
 /**
@@ -290,4 +246,14 @@ function pmproava_option_retroactive_tax() {
 		</option>
 	</select>
 	<?php
+}
+
+/**
+ * Show "Site Prefix" field.
+ */
+function pmproava_option_site_prefix() {
+	$options = pmproava_get_options();
+	$site_prefix = $options['site_prefix'];
+	echo "<input id='pmproava_site_prefix' name='pmproava_options[site_prefix]' size='80' type='text' value='" . esc_attr( $site_prefix ) . "' />";
+	echo '<br><small>' . esc_html__( 'Prefix for customer codes and invoice codes in Avatax.', 'pmpro-avatax' ) . '</small>';
 }

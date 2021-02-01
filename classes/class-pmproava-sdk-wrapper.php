@@ -52,6 +52,12 @@ class PMProava_SDK_Wrapper {
 	 * @return object
 	 */
 	public function validate_address( $address ) {
+		if ( empty( $address ) ) {
+			global $pmproava_error;
+			$pmproava_error = 'Error while validating address: No address was passed';
+			return null;
+		}
+
 		$response = $this->AvaTaxClient->resolveAddress(
 			isset( $address->line1 ) ? $address->line1 : '',
 			isset( $address->line2 ) ? $address->line2 : '',
@@ -62,10 +68,15 @@ class PMProava_SDK_Wrapper {
 			isset( $address->country ) ? $address->country : '',
 			'Mixed' // Text case.
 		);
+
 		if ( ! empty( $response->messages ) ) {
 			// Invalid address.
 			global $pmproava_error;
 			$pmproava_error = 'Error while validating address: ' . $response->messages[0]->summary;
+			return null;
+		} elseif ( is_string( $response ) ) {
+			global $pmproava_error;
+			$pmproava_error = 'Error while validating address: ' . $response;
 			return null;
 		}
 		return $response->validatedAddresses[0];
@@ -80,10 +91,12 @@ class PMProava_SDK_Wrapper {
 	 * @param object $billing_address of buyer
 	 * @param string $document_type of transaction
 	 * @param string $customer_code of buyer
+	 * @param string $document_code of invoice
 	 * @param bool   $retroactive_tax if tax is included in $price
+	 * @param string $transaction_date of transaction, defaults to today
 	 * @return Avalara\TransactionMode|null
 	 */
-	private function get_transaction_mode( $price, $product_category, $product_address_model, $billing_address = null, $document_type = Avalara\DocumentType::C_SALESORDER, $customer_code = '0', $retroactive_tax = false ) {
+	private function get_transaction_mode( $price, $product_category, $product_address_model, $billing_address = null, $document_type = Avalara\DocumentType::C_SALESORDER, $customer_code = '0', $document_code = '0', $retroactive_tax = false, $transaction_date = null ) {
 		if ( ! $this->check_credentials() ) {
 			global $pmproava_error;
 			$pmproava_error = "Could not validate credentiasl in 'get_transaction_mode()'";
@@ -103,8 +116,14 @@ class PMProava_SDK_Wrapper {
 			$this->AvaTaxClient,
 			$pmproava_options['company_code'],
 			$document_type,
-			$customer_code
+			$customer_code,
+			$transaction_date
 		);
+
+		if ( $document_type === Avalara\DocumentType::C_SALESINVOICE ) {
+			$transaction_builder->withTransactionCode( $document_code );
+			$transaction_builder->withCommit();
+		}
 
 		// Set addresses for transaction.
 		switch ( $product_address_model ) {
@@ -160,7 +179,13 @@ class PMProava_SDK_Wrapper {
 			$transaction_builder->withLineTaxIncluded();
 		}
 
-		return $transaction_builder->create();
+		$transaction_mode = $transaction_builder->create();
+		if ( is_string( $transaction_mode ) ) {
+			global $pmproava_error;
+			$pmproava_error = 'Error while creating transaction_mode: ' . $transaction_mode;
+			return null;
+		}
+		return $transaction_mode;
 	}
 
 	/**
@@ -171,14 +196,49 @@ class PMProava_SDK_Wrapper {
 	 * @param string $product_address_model being purchased
 	 * @param object $billing_address of buyer
 	 * @param bool   $retroactive_tax if tax is included in $price
+	 * @param string $transaction_date of transaction, defaults to today
 	 * @return float|null
 	 */
-	public function calculate_tax( $price, $product_category, $product_address_model, $billing_address = null, $retroactive_tax = false ) {
-		$transaction_mode = $this->get_transaction_mode( $price, $product_category, $product_address_model, $billing_address, Avalara\DocumentType::C_SALESORDER, '0', $retroactive_tax );
+	public function calculate_tax( $price, $product_category, $product_address_model, $billing_address = null, $retroactive_tax = false, $transaction_date = null ) {
+		$transaction_mode = $this->get_transaction_mode( $price, $product_category, $product_address_model, $billing_address, Avalara\DocumentType::C_SALESORDER, '0', '0', $retroactive_tax, $transaction_date );
 		if ( empty( $transaction_mode ) ) {
 			// Error would have been thrown in get_transaction_mode.
 			return null;
 		}
 		return $transaction_mode->totalTax;
+	}
+
+	/**
+	 * Calculate tax amount without creating a transaction in Avalara.
+	 *
+	 * @param float  $price paid
+	 * @param string $product_category purchased
+	 * @param string $product_address_model purchased
+	 * @param object $billing_address of buyer
+	 * @param string $transaction_date of transaction, defaults to today
+	 * @param bool   successful
+	 */
+	public function commit_new_transaction( $price, $product_category, $product_address_model, $billing_address = null, $customer_code, $document_code, $transaction_date = null ) {
+		$transaction_mode = $this->get_transaction_mode( $price, $product_category, $product_address_model, $billing_address, Avalara\DocumentType::C_SALESINVOICE, '0', $document_code, true, $transaction_date );
+		if ( empty( $transaction_mode ) ) {
+			// Error would have been thrown in get_transaction_mode.
+			return false;
+		}
+		return true;
+	}
+
+	public function get_transaction_by_code( $document_code, $document_type = Avalara\DocumentType::C_SALESINVOICE ) {
+		$pmproava_options = pmproava_get_options();
+		$response = $this->AvaTaxClient->getTransactionByCode( $pmproava_options['company_code'], $document_code, $document_type );
+		if ( is_string( $response ) ) {
+			global $pmproava_error;
+			$pmproava_error = 'Error while getting transaction for document code ' . $document_code . ': ' . $response;
+			return null;
+		}
+		return $response;
+	}
+
+	public function transaction_exists_for_code( $document_code, $document_type = Avalara\DocumentType::C_SALESINVOICE ) {
+		return ! empty( $this->get_transaction_by_code( $document_code, $document_type ) );
 	}
 }
