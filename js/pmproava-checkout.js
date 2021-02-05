@@ -7,11 +7,11 @@ jQuery(document).ready(function(){
 			success: function(data) {
 				if ( data.hasOwnProperty('initial_payment') ) {
 					var level_id   = jQuery('#level').val();
-					var line1      = jQuery("#baddress1").val();
-					var city       = jQuery("#bcity").val();
-					var postalCode = jQuery("#bzipcode").val();
-					var country    = jQuery("select[name='bcountry']").val();
-					var region     = jQuery("#bstate").val();
+					var line1      = jQuery("#baddress1").val() || '';
+					var city       = jQuery("#bcity").val() || '';
+					var postalCode = jQuery("#bzipcode").val() || '';
+					var country    = jQuery("select[name='bcountry']").val() || '';
+					var region     = jQuery("#bstate").val() || '';
 
 					jQuery.noConflict().ajax({
 						url: pmproava.restUrl + 'pmpro-avatax/v1/calculate_tax_at_checkout',

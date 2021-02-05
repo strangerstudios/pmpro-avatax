@@ -101,19 +101,19 @@ function pmproava_get_customer_code( $user_id ) {
 }
 
 /**
- * Get the Avalara document code for a particular order.
+ * Get the Avalara transaction code for a particular order.
  *
- * @param MemberOrder $order to get document code for.
+ * @param MemberOrder $order to get transaction code for.
  * @return string
  */
-function pmproava_get_document_code( $order ) {
-	$document_code = get_pmpro_membership_order_meta( $order->id, 'pmproava_document_code', true );
+function pmproava_get_transaction_code( $order ) {
+	$transaction_code = get_pmpro_membership_order_meta( $order->id, 'pmproava_transaction_code', true );
 	if ( empty( $customer_code ) ) {
 		$pmproava_options = pmproava_get_options();
-		$document_code    = $pmproava_options['site_prefix'] . '-' . $order->code;
-		update_pmpro_membership_order_meta( $order->id, 'pmproava_document_code', $document_code );
+		$transaction_code    = $pmproava_options['site_prefix'] . '-' . $order->code;
+		update_pmpro_membership_order_meta( $order->id, 'pmproava_transaction_code', $transaction_code );
 	}
-	return $document_code;
+	return $transaction_code;
 }
 
 // if not, we should probably return 0 to prevent other plugins for interfering.
@@ -151,7 +151,35 @@ function pmproava_tax_filter( $tax, $values, $order ) {
 }
 add_filter( 'pmpro_tax', 'pmproava_tax_filter', 100, 3 ); // Avalara should have the final say in taxes.
 
-function pmproava_send_order_to_avatax( $order ) {
+function pmproava_updated_order( $order ) {
+	global $wpdb;
+
+	// Check if gateway environments match for order and Avalara creds. If not, return.
+	$pmproava_options = pmproava_get_options();
+	$pmproava_environment = $pmproava_options['environment'] === 'sandbox' ? 'sandbox' : 'live' ;
+	$gateway_environment = pmpro_getOption( 'gateway_environment' );
+	if ( $pmproava_environment !== $gateway_environment ) {
+		return;
+	}
+
+	$transaction_code        = pmproava_get_transaction_code( $order );
+	$pmproava_sdk_wrapper    = PMProava_SDK_Wrapper::get_instance();
+	$transaction             = $pmproava_sdk_wrapper->get_transaction_by_code( $transaction_code );
+
+	// If transaction does not already exist in AvaTax and order is voided in PMPro, return.
+	if ( empty( $transaction ) && in_array( $order->status, array( 'refunded', 'error' ) ) ) {
+		return;
+	}
+
+	// Void transaction if refunded/error and not already voided
+	if ( in_array( $order->status, array( 'error', 'refunded' ) ) ) {
+		if ( $transaction->status !== 'Cancelled' ) {
+			$pmproava_sdk_wrapper->void_transaction( $transaction_code );
+		}
+		return;
+	}
+
+	// Create/update transaction.
 	$price                       = $order->total;
 	$product_category            = pmproava_get_product_category( $order->membership_id );
 	$product_address_model       = pmproava_get_product_address_model( $order->membership_id );
@@ -162,55 +190,40 @@ function pmproava_send_order_to_avatax( $order ) {
 	$billing_address->postalCode = $order->billing->zip;
 	$billing_address->country    = $order->billing->country;
 	$customer_code               = pmproava_get_customer_code( $order->user_id );
-	$document_code               = pmproava_get_document_code( $order );
-	$transaction_date            = ! empty( $order->timestamp ) ? $order->getTimestamp( true ) : null;
-
-	$pmproava_sdk_wrapper = PMProava_SDK_Wrapper::get_instance();
-	$success = $pmproava_sdk_wrapper->commit_new_transaction( $price, $product_category, $product_address_model, $billing_address, $customer_code, $document_code, $transaction_date );
-	return $success;
-}
-
-function pmproava_updated_order( $order ) {
-	// Check if gateway environments match for order and Avalara creds. If not, return.
-	$pmproava_options = pmproava_get_options();
-	$pmproava_environment = $pmproava_options['environment'] === 'sandbox' ? 'sandbox' : 'live' ;
-	$gateway_environment = pmpro_getOption( 'gateway_environment' );
-	if ( $pmproava_environment !== $gateway_environment ) {
-		return false;
+	$commit                      = in_array( $order->status, array( 'success', 'cancelled' ) ) ? true : false;
+	$transaction_date            = ! empty( $order->timestamp ) ? date( 'Y-m-d', $order->getTimestamp( true ) ): null;
+	if ( ! $pmproava_sdk_wrapper->create_transaction( $price, $product_category, $product_address_model, $billing_address, $customer_code, $transaction_code, $commit, $transaction_date ) ) {
+		pmproava_save_order_error( $order );
+		return;
 	}
-	$document_code        = pmproava_get_document_code( $order );
-	$pmproava_sdk_wrapper = PMProava_SDK_Wrapper::get_instance();
-	switch( $order->status ) {
-		case 'success':
-		case 'cancelled':
-			// Check if order has already been sent to Avatax.
-			if ( ! $pmproava_sdk_wrapper->transaction_exists_for_code( $document_code ) ) {
-				// Send order to Avalara.
-				$success = pmproava_send_order_to_avatax( $order );
-				if ( $success ) {
-					$transaction = $pmproava_sdk_wrapper->get_transaction_by_code( $document_code );
-					if ( ! empty( $transaction ) ) {
-						$order->subtotal = $transaction->totalAmount;
-						$order->tax      = $transaction->totalTax;
-						$order->saveOrder();
-					}
-				} else {
-					global $pmproava_error;
-					echo( $pmproava_error );
-				}
-			}
-			break;
-		case 'refunded':
-			// Check if order has already been sent to Avalara.
-			// If so, set Avalara order to refunded.
-			break;
-		case 'pending': // Do we want this here?
-		case 'review':  // Do we want this here?
-		case 'error':
-			// Check if order has already been sent to Avalara.
-			// If so, void order in Avalara.
-			break;
-	}
+
+	// Get new/updated transaction.
+	$transaction = $pmproava_sdk_wrapper->get_transaction_by_code( $transaction_code );
+
+	// Update subtotal and tax fields in PMPro.
+	$wpdb->query( "
+	UPDATE $wpdb->pmpro_membership_orders
+	SET `subtotal` = '" . esc_sql( $transaction->totalAmount ) . "',
+		`tax` = '" . esc_sql( $transaction->totalTax ) . "'
+	WHERE id = '" . esc_sql( $order->id ) . "'
+	LIMIT 1"
+	);
+
+	// Clear AvaTax errors for order.
+	pmproava_save_order_error( $order );
 }
 add_filter( 'pmpro_added_order', 'pmproava_updated_order' );
 add_filter( 'pmpro_updated_order', 'pmproava_updated_order' );
+
+function pmproava_save_order_error( $order ) {
+	global $pmproava_error;
+	if ( ! empty( $pmproava_error ) ) {
+		update_pmpro_membership_order_meta( $order->id, 'pmproava_error', $pmproava_error );
+	} else {
+		delete_pmpro_membership_order_meta( $order->id, 'pmproava_error' );
+	}
+}
+
+function pmproava_get_order_error( $order ) {
+	return get_pmpro_membership_order_meta( $order->id, 'pmproava_error', true ) ?: '';
+}

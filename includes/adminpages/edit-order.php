@@ -5,20 +5,34 @@ function pmproava_after_order_settings( $order ) {
 		// This is a new order.
 		return;
 	}
+
 	$pmproava_options     = pmproava_get_options();
 	$pmproava_sdk_wrapper = PMProava_SDK_Wrapper::get_instance();
-	$document_code        = pmproava_get_document_code( $order );
-	if ( $pmproava_sdk_wrapper->transaction_exists_for_code( $document_code ) ) {
-		$transaction = $pmproava_sdk_wrapper->get_transaction_by_code( $document_code );
-		?>
-		<tr>
-			<th>AvaTax</th>
-			<td>
-				<table>
-					<tr>
-						<th>Document Code</th>
-						<td><?php echo $document_code; ?></td>
-					</tr>
+	$transaction_code     = pmproava_get_transaction_code( $order );
+	?>
+	<tr>
+		<th>AvaTax</th>
+		<td>
+			<table>
+				<?php 
+					$error = pmproava_get_order_error( $order );
+					if ( ! empty( $error ) ) {
+						?>
+						<tr>
+							<th>Error</th>
+							<td><?php echo $error; ?></td>
+						</tr>
+						<?php
+					}
+				?>
+				<tr>
+					<th>Transaction Code</th>
+					<td><?php echo $transaction_code; ?></td>
+				</tr>
+				<?php
+				$transaction = $pmproava_sdk_wrapper->get_transaction_by_code( $transaction_code );
+				if ( ! empty( $transaction ) ) {
+					?>
 					<tr>
 						<th>Customer Code</th>
 						<td><?php echo $transaction->customerCode; ?></td>
@@ -46,17 +60,19 @@ function pmproava_after_order_settings( $order ) {
 						?>
 						<td><a href="<?php echo $url ?>" target="_blank"><?php echo $url ?></a></td>
 					</tr>
-				</table>
-			</td>
-		</tr>
-		<?php
-	} else {
-		?>
-		<tr>
-			<th>AvaTax</th>
-			<td><?php _e( 'This order has not yet been sent to AvaTax.', 'pmpro-avatax' ) ?></td>
-		</tr>
-		<?php
-	}
+					<?php
+				} else {
+					?>
+					<tr>
+						<th>Status</th>
+						<td><?php echo 'This order has not yet been sent to AvaTax.'; ?></td>
+					</tr>
+					<?php
+				}
+				?>
+			</table>
+		</td>
+	</tr>
+	<?php
 }
 add_action( 'pmpro_after_order_settings', 'pmproava_after_order_settings', 10, 1 );

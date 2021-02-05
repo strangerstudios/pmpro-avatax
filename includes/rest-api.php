@@ -60,6 +60,8 @@ if ( class_exists( 'WP_REST_Controller' ) ) {
 				return new WP_REST_Response( 'pmpro-avatax error: country not passed through.', 400 );
 			}
 
+			add_filter( 'pmpro_is_checkout', '__return_true' );
+
 			$order = new MemberOrder();
 			$order->membership_id    = $level_id;
 			$order->subtotal         = $price;
