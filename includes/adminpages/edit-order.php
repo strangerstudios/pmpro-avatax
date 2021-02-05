@@ -31,7 +31,7 @@ function pmproava_after_order_settings( $order ) {
 				</tr>
 				<?php
 				$transaction = $pmproava_sdk_wrapper->get_transaction_by_code( $transaction_code );
-				if ( ! empty( $transaction ) ) {
+				if ( ! empty( $transaction ) && empty( $transaction->error ) ) {
 					?>
 					<tr>
 						<th>Customer Code</th>
