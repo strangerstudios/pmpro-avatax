@@ -76,9 +76,9 @@ class PMProava_SDK_Wrapper {
 			global $pmproava_error;
 			$pmproava_error = 'Error while validating address: ' . $response->messages[0]->summary;
 			return null;
-		} elseif ( is_string( $response ) ) {
+		} elseif ( ! empty( $response->error ) ) {
 			global $pmproava_error;
-			$pmproava_error = 'Error while validating address: ' . $response;
+			$pmproava_error = 'Error while validating address: ' . $response->error->message;
 			return null;
 		}
 		return $response->validatedAddresses[0];
@@ -223,6 +223,18 @@ class PMProava_SDK_Wrapper {
 		$void_transaction_model = new Avalara\VoidTransactionModel();
 		$void_transaction_model->code = Avalara\VoidReasonCode::C_DOCVOIDED;
 		$transaction_model = $this->AvaTaxClient->voidTransaction( $pmproava_options['company_code'], $transaction_code, $document_type, null, $void_transaction_model );
+	}
+
+	public function lock_transaction( $transaction_code, $document_type = Avalara\DocumentType::C_SALESINVOICE ) {
+		$pmproava_options = pmproava_get_options();
+
+		if ( $pmproava_options['environment'] !== 'sandbox' ) {
+			return;
+		}
+
+		$lock_transaction_model = new Avalara\LockTransactionModel();
+		$lock_transaction_model->isLocked = true;
+		$transaction_model = $this->AvaTaxClient->lockTransaction( $pmproava_options['company_code'], $transaction_code, $document_type, null, $lock_transaction_model );
 	}
 
 	/**

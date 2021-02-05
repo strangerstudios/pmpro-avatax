@@ -116,41 +116,6 @@ function pmproava_get_transaction_code( $order ) {
 	return $transaction_code;
 }
 
-// if not, we should probably return 0 to prevent other plugins for interfering.
-function pmproava_tax_filter( $tax, $values, $order ) {
-	$level_id              = $order->membership_id;
-	$product_category      = pmproava_get_product_category( $level_id );
-	$product_address_model = pmproava_get_product_address_model( $level_id );
-
-	$retroactive_tax = true;
-	$options = pmproava_get_options();
-	if ( ! pmpro_is_checkout() || $options['retroactive_tax'] === 'yes' ) {
-		// Not at checkout or tax is being calculated retroactively. Don't need to calculate tax right now.
-		return 0;
-	}
-
-	if ( $product_address_model === 'singleLocation' ) {
-		// Improves caching.
-		$billing_address = null;
-	} else {
-		$billing_address = new stdClass();
-		$billing_address->line1 = isset( $values['billing_street'] ) ? $values['billing_street'] : '';
-		$billing_address->city = isset( $values['billing_city'] ) ? $values['billing_city'] : '';
-		$billing_address->region = isset( $values['billing_state'] ) ? $values['billing_state'] : '';
-		$billing_address->postalCode = isset( $values['billing_zip'] ) ? $values['billing_zip'] : '';
-		$billing_address->country = isset( $values['billing_country'] ) ? $values['billing_country'] : '';
-	}
-
-	$cache_key = wp_hash( json_encode( array( $level_id, $product_category, $product_address_model, $billing_address ) ) );
-	static $cache;
-	if ( ! isset( $cache[ $cache_key ] ) ) {
-		$pmproava_sdk_wrapper = PMProava_SDK_Wrapper::get_instance();
-		$cache[ $cache_key ] = $pmproava_sdk_wrapper->calculate_tax( $values['price'], $product_category, $product_address_model, $billing_address ) ?: 0;
-	}
-	return $cache[ $cache_key ];
-}
-add_filter( 'pmpro_tax', 'pmproava_tax_filter', 100, 3 ); // Avalara should have the final say in taxes.
-
 function pmproava_updated_order( $order ) {
 	global $wpdb;
 
