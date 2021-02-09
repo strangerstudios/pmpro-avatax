@@ -7,7 +7,7 @@ function pmproava_after_order_settings( $order ) {
 	}
 
 	$pmproava_options     = pmproava_get_options();
-	$pmproava_sdk_wrapper = PMProava_SDK_Wrapper::get_instance();
+	$pmpro_avatax         = PMPro_AvaTax::get_instance();
 	$transaction_code     = pmproava_get_transaction_code( $order );
 	?>
 	<tr>
@@ -30,7 +30,7 @@ function pmproava_after_order_settings( $order ) {
 					<td><?php echo $transaction_code; ?></td>
 				</tr>
 				<?php
-				$transaction = $pmproava_sdk_wrapper->get_transaction_for_order( $order );
+				$transaction = $pmpro_avatax->get_transaction_for_order( $order );
 				if ( ! empty( $transaction ) && empty( $transaction->error ) ) {
 					?>
 					<tr>

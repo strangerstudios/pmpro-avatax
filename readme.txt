@@ -19,7 +19,7 @@ IMPORTANT NOTE: This plugin is in active development and not meant for productio
 = Download, Install and Activate! =
 1. Download the latest version of the plugin.
 1. Unzip the downloaded file to your computer.
-1. Upload the /pmpro-avalara/ directory to the /wp-content/plugins/ directory of your site.
+1. Upload the /pmpro-avatax/ directory to the /wp-content/plugins/ directory of your site.
 1. Activate the plugin through the 'Plugins' menu in WordPress.
 
 == Changelog ==

@@ -63,7 +63,7 @@ function pmproava_options_validate($input) {
 
 define("PMPROAVA_GENERAL_MERCHANDISE", "P0000000");
 /**
- * Get the Avalara product category for a particular level.
+ * Get the AvaTax product category for a particular level.
  *
  * @param int $level_id to get category for
  * @return string product category
@@ -74,7 +74,7 @@ function pmproava_get_product_category( $level_id ) {
 }
 
 /**
- * Get the Avalara address model for a particular level.
+ * Get the AvaTax address model for a particular level.
  *
  * @param int $level_id to get category for
  * @return string address model
@@ -85,7 +85,7 @@ function pmproava_get_product_address_model( $level_id ) {
 }
 
 /**
- * Get the Avalara customer code for a given user_id.
+ * Get the AvaTax customer code for a given user_id.
  *
  * @param int $user_id to get customer code for.
  * @return string
@@ -127,8 +127,8 @@ function pmproava_updated_order( $order ) {
 		return;
 	}
 
-	$pmproava_sdk_wrapper    = PMProava_SDK_Wrapper::get_instance();
-	$transaction             = $pmproava_sdk_wrapper->get_transaction_for_order( $order );
+	$pmpro_avatax            = PMPro_AvaTax::get_instance();
+	$transaction             = $pmpro_avatax->get_transaction_for_order( $order );
 
 	// If transaction does not already exist in AvaTax and order is voided in PMPro, return.
 	if ( empty( $transaction ) && in_array( $order->status, array( 'refunded', 'error' ) ) ) {
@@ -138,16 +138,16 @@ function pmproava_updated_order( $order ) {
 	// Void transaction if refunded/error and not already voided
 	if ( in_array( $order->status, array( 'error', 'refunded' ) ) ) {
 		if ( $transaction->status !== 'Cancelled' ) {
-			$pmproava_sdk_wrapper->void_transaction_for_order( $order );
+			$pmpro_avatax->void_transaction_for_order( $order );
 		}
 		return;
 	}
 
 	// Create/update transaction.
-	$pmproava_sdk_wrapper->update_transaction_from_order( $order );
+	$pmpro_avatax->update_transaction_from_order( $order );
 
 	// Get new/updated transaction.
-	$transaction = $pmproava_sdk_wrapper->get_transaction_for_order( $order );
+	$transaction = $pmpro_avatax->get_transaction_for_order( $order );
 
 	// Update subtotal and tax fields in PMPro.
 	if ( $transaction ) {

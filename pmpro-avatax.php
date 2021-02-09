@@ -6,14 +6,14 @@
  * Version: .1
  * Author: Paid Memberships Pro
  * Author URI: https://www.paidmembershipspro.com
- * Text Domain: pmpro-avalara
+ * Text Domain: pmpro-avalaavataxra
  */
 
 define( 'PMPROAVA_VERSION', '.1' );
 define( 'PMPROAVA_DIR', dirname( __FILE__ ) );
 define( 'PMPROAVA_BASENAME', plugin_basename( __FILE__ ) );
 
-require_once PMPROAVA_DIR . '/classes/class-pmproava-sdk-wrapper.php';  // Connect PMPromc to AvaTax.
+require_once PMPROAVA_DIR . '/classes/class-pmpro-avatax.php';          // Connect PMProava to AvaTax.
 
 require_once PMPROAVA_DIR . '/includes/checkout.php';                   // Add fields to checkout.
 require_once PMPROAVA_DIR . '/includes/functions.php';                  // Miscellaneous functions.

@@ -72,8 +72,8 @@ function pmproava_section_credentials() {
 	}
 
 	// Check if avatax credentials are valid. If not, show warning.
-	$pmproava_sdk_wrapper = PMProava_SDK_Wrapper::get_instance();
-	if ( ! $pmproava_sdk_wrapper->check_credentials() ) {
+	$pmpro_avatax = PMPro_Avatax::get_instance();
+	if ( ! $pmpro_avatax->check_credentials() ) {
 		?>
 		<div class="notice notice-error">
 			<p><strong><?php esc_html_e( 'Invalid avatax credentials.', 'pmpro-avatax' ); ?></strong></p>
@@ -129,8 +129,8 @@ function pmproava_section_company() {
 	}
 
 	// Check if company address is valid. If not, show warning.
-	$pmproava_sdk_wrapper = PMProava_SDK_Wrapper::get_instance();
-	if ( null === $pmproava_sdk_wrapper->validate_address( $options['company_address'] ) ) {
+	$pmpro_avatax = PMPro_Avatax::get_instance();
+	if ( null === $pmpro_avatax->validate_address( $options['company_address'] ) ) {
 		?>
 		<div class="notice notice-error">
 			<p><strong><?php esc_html_e( 'Invalid Company Address.', 'pmpro-avatax' ); ?></strong></p>

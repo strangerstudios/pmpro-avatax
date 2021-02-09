@@ -1,6 +1,6 @@
 <?php
 
-class PMProava_SDK_Wrapper {
+class PMPro_AvaTax {
 
 	// Singlton class.
 	private static $instance   = null;
@@ -26,13 +26,13 @@ class PMProava_SDK_Wrapper {
 		$license_key        = $pmproava_options['license_key'];
 		$environment        = $pmproava_options['environment'];
 		$guzzle_params      = array( 'http_errors' => false );
-		$this->AvaTaxClient = new Avalara\AvaTaxClient( 'PMPro Avalara', '1.0', get_bloginfo( 'name' ), $environment, $guzzle_params );
+		$this->AvaTaxClient = new Avalara\AvaTaxClient( 'PMPro AvaTax', '1.0', get_bloginfo( 'name' ), $environment, $guzzle_params );
 		$this->AvaTaxClient->withLicenseKey( $account_number, $license_key );
 	}
 
 	public static function get_instance() {
 		if ( self::$instance == null ) {
-			self::$instance = new PMProava_SDK_Wrapper();
+			self::$instance = new PMPro_AvaTax();
 		}
 		return self::$instance;
 	}
@@ -100,7 +100,7 @@ class PMProava_SDK_Wrapper {
 		$args = array_merge( $default_args, $args );
 		extract( $args );
 
-		// Create a transaction in Avalara.
+		// Create a transaction in AvaTax.
 		$transaction_builder = new Avalara\TransactionBuilder(
 			$this->AvaTaxClient,
 			$pmproava_options['company_code'],
@@ -270,7 +270,7 @@ class PMProava_SDK_Wrapper {
 	 */
 
 	/**
-	 * Check whether the user's Avalara credentials are valid.
+	 * Check whether the user's AvaTax credentials are valid.
 	 *
 	 * @return bool
 	 */

@@ -84,12 +84,12 @@ function pmproava_tax_filter( $tax, $values, $order ) {
 	$cache_key = wp_hash( json_encode( array( $level_id, $product_category, $product_address_model, $billing_address ) ) );
 	static $cache;
 	if ( ! isset( $cache[ $cache_key ] ) ) {
-		$pmproava_sdk_wrapper = PMProava_SDK_Wrapper::get_instance();
-		$cache[ $cache_key ] = $pmproava_sdk_wrapper->calculate_tax( $values['price'], $product_category, $product_address_model, $billing_address ) ?: 0;
+		$pmpro_avatax        = PMPro_AvaTax::get_instance();
+		$cache[ $cache_key ] = $pmpro_avatax->calculate_tax( $values['price'], $product_category, $product_address_model, $billing_address ) ?: 0;
 	}
 	return $cache[ $cache_key ];
 }
-add_filter( 'pmpro_tax', 'pmproava_tax_filter', 100, 3 ); // Avalara should have the final say in taxes.
+add_filter( 'pmpro_tax', 'pmproava_tax_filter', 100, 3 ); // AvaTax should have the final say in taxes.
 
 function pmproava_registration_checks( $okay ) {
 	// There is already an error being thrown.
@@ -107,8 +107,8 @@ function pmproava_registration_checks( $okay ) {
 		$billing_address->postalCode = isset( $_REQUEST['bzipcode'] ) ? $_REQUEST['bzipcode'] : '';
 		$billing_address->country = isset( $_REQUEST['bcountry'] ) ? $_REQUEST['bcountry'] : '';
 
-		$pmproava_sdk_wrapper = PMProava_SDK_Wrapper::get_instance();
-		if ( empty( $pmproava_sdk_wrapper->validate_address( $billing_address ) ) ) {
+		$pmpro_avatax = PMPro_AvaTax::get_instance();
+		if ( empty( $pmpro_avatax->validate_address( $billing_address ) ) ) {
 			// Billing address validation failed.
 			$okay = false;
 			pmpro_setMessage("Billing address was not valid.", "pmpro_error");
