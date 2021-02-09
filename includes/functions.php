@@ -26,6 +26,7 @@ function pmproava_get_options() {
 			'company_address' => $default_address,
 			'retroactive_tax' => 'yes',
 			'site_prefix'     => 'PMPRO',
+			'allow_vat'       => 'no',
 		);
 		$options = array_merge( $default_options, $set_options );
 	}
@@ -54,6 +55,9 @@ function pmproava_options_validate($input) {
 	}
 	if ( isset($input['retroactive_tax']) && $input['retroactive_tax'] === 'no' ) {
 		$newinput['retroactive_tax'] = 'no';
+	}
+	if ( isset($input['allow_vat']) && $input['allow_vat'] === 'yes' ) {
+		$newinput['allow_vat'] = 'yes';
 	}
 	if ( isset($input['site_prefix'] ) ) {
 		$newinput['site_prefix'] = trim( preg_replace("[^a-zA-Z0-9\-]", "", $input['site_prefix'] ) );
@@ -144,6 +148,10 @@ function pmproava_updated_order( $order ) {
 		return;
 	}
 
+	if ( ! empty( $_REQUEST['vat_number'] ) ) {
+		update_pmpro_membership_order_meta( $order->id, 'vat_number', esc_sql( $_REQUEST['vat_number'] ) );
+	}
+
 	// Create/update transaction.
 	$price                       = $order->total;
 	$product_category            = pmproava_get_product_category( $order->membership_id );
@@ -155,9 +163,11 @@ function pmproava_updated_order( $order ) {
 	$billing_address->postalCode = $order->billing->zip;
 	$billing_address->country    = $order->billing->country;
 	$customer_code               = pmproava_get_customer_code( $order->user_id );
+	$vat_number                  = get_pmpro_membership_order_meta( $order->id, 'vat_number', true );
 	$commit                      = in_array( $order->status, array( 'success', 'cancelled' ) ) ? true : false;
 	$transaction_date            = ! empty( $order->timestamp ) ? date( 'Y-m-d', $order->getTimestamp( true ) ): null;
-	if ( ! $pmproava_sdk_wrapper->create_transaction( $price, $product_category, $product_address_model, $billing_address, $customer_code, $transaction_code, $commit, $transaction_date ) ) {
+	d($vat_number );
+	if ( ! $pmproava_sdk_wrapper->create_transaction( $price, $product_category, $product_address_model, $billing_address, $customer_code, $transaction_code, $vat_number, $commit, $transaction_date ) ) {
 		pmproava_save_order_error( $order );
 		return;
 	}

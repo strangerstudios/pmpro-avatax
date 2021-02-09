@@ -12,6 +12,7 @@ jQuery(document).ready(function(){
 					var postalCode = jQuery("#bzipcode").val() || '';
 					var country    = jQuery("select[name='bcountry']").val() || '';
 					var region     = jQuery("#bstate").val() || '';
+					var vat_number = jQuery("#vat_number").val() || '';
 
 					jQuery.noConflict().ajax({
 						url: pmproava.restUrl + 'pmpro-avatax/v1/calculate_tax_at_checkout',
@@ -22,7 +23,8 @@ jQuery(document).ready(function(){
 							'city' : city,
 							'postalCode' : postalCode,
 							'country' : country,
-							'region': region
+							'region': region,
+							'vat_number': vat_number
 						},
 						success:function(data) {
 							jQuery("#pmproava_tax_estimate").html("Based on your location you will be charged <b>"+ data.tax_formatted + "</b> sales tax");

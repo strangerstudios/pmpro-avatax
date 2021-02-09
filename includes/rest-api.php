@@ -59,6 +59,7 @@ if ( class_exists( 'WP_REST_Controller' ) ) {
 			if ( null === $country ) {
 				return new WP_REST_Response( 'pmpro-avatax error: country not passed through.', 400 );
 			}
+			// Can also pass vat_number if desired.
 
 			add_filter( 'pmpro_is_checkout', '__return_true' );
 

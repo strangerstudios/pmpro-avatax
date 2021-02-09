@@ -4,8 +4,18 @@ function pmproava_checkout_boxes() {
 	global $pmpro_level;
 
 	$options = pmproava_get_options();
-	$retroactive_tax = $options['retroactive_tax'] === 'yes' ? true : false;
 
+	$allow_vat       = $options['allow_vat'] === 'yes';
+	if ( $allow_vat ) {
+		?>
+		<div class="<?php echo pmpro_get_element_class( 'pmpro_checkout-field' ); ?>">
+				<label for="vat_number"><?php _e('VAT Number (if applicable)', 'pmpro-avatax' );?></label>
+				<input id="vat_number" name="vat_number" type="text" class="<?php echo pmpro_get_element_class( 'input' ); ?>" size="30" />
+			</div> <!-- end pmpro_checkout-field-password -->
+		<?php
+	}
+
+	$retroactive_tax = $options['retroactive_tax'] === 'yes';
 	if ( ! $retroactive_tax ) {
 		?>
 		<table id="pmpro_sales_tax" class="pmpro_checkout" width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -81,11 +91,13 @@ function pmproava_tax_filter( $tax, $values, $order ) {
 		$billing_address->country = isset( $values['billing_country'] ) ? $values['billing_country'] : '';
 	}
 
-	$cache_key = wp_hash( json_encode( array( $level_id, $product_category, $product_address_model, $billing_address ) ) );
+	$vat_number = isset( $_REQEUST['vat_number'] ) ? $_REQEUST['vat_number'] : null;
+
+	$cache_key = wp_hash( json_encode( array( $level_id, $product_category, $product_address_model, $billing_address, $vat_number ) ) );
 	static $cache;
 	if ( ! isset( $cache[ $cache_key ] ) ) {
 		$pmproava_sdk_wrapper = PMProava_SDK_Wrapper::get_instance();
-		$cache[ $cache_key ] = $pmproava_sdk_wrapper->calculate_tax( $values['price'], $product_category, $product_address_model, $billing_address ) ?: 0;
+		$cache[ $cache_key ] = $pmproava_sdk_wrapper->calculate_tax( $values['price'], $product_category, $product_address_model, $billing_address, $vat_number ) ?: 0;
 	}
 	return $cache[ $cache_key ];
 }

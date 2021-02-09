@@ -99,7 +99,7 @@ class PMProava_SDK_Wrapper {
 	 * @param string $transaction_date of transaction, defaults to today
 	 * @return Avalara\TransactionMode|null
 	 */
-	private function get_transaction_mode( $price, $product_category, $product_address_model, $billing_address = null, $document_type = Avalara\DocumentType::C_SALESORDER, $customer_code = '0', $transaction_code = '0', $retroactive_tax = false, $commit = false, $transaction_date = null ) {
+	private function get_transaction_mode( $price, $product_category, $product_address_model, $billing_address = null, $document_type = Avalara\DocumentType::C_SALESORDER, $customer_code = '0', $transaction_code = '0', $vat_number = null, $retroactive_tax = false, $commit = false, $transaction_date = null ) {
 		if ( ! $this->check_credentials() ) {
 			global $pmproava_error;
 			$pmproava_error = "Could not validate credentials in 'get_transaction_mode()'";
@@ -176,6 +176,11 @@ class PMProava_SDK_Wrapper {
 			null,                // $itemCode
 			$product_category    // $taxCode
 		);
+		d($vat_number);
+		if ( ! empty( $vat_number ) ) {
+			$transaction_builder->withBusinessIdentificationNo( $vat_number );
+			d($transaction_builder);
+		}
 
 
 		// Make tax retroactive if needed.
@@ -189,6 +194,7 @@ class PMProava_SDK_Wrapper {
 		}
 
 		$transaction_mode = $transaction_builder->createOrAdjust();
+		d($transaction_mode);
 		if ( ! empty( $transaction_mode->errors ) ) {
 			global $pmproava_error;
 			$pmproava_error = 'Error while creating transaction_mode: ' . $transaction_mode->errors->{''}[0];
@@ -209,8 +215,8 @@ class PMProava_SDK_Wrapper {
 	 * @param string $transaction_date of transaction, defaults to today
 	 * @return float|null
 	 */
-	public function calculate_tax( $price, $product_category, $product_address_model, $billing_address = null, $retroactive_tax = false, $transaction_date = null ) {
-		$transaction_mode = $this->get_transaction_mode( $price, $product_category, $product_address_model, $billing_address, Avalara\DocumentType::C_SALESORDER, '0', '0', $retroactive_tax, $transaction_date );
+	public function calculate_tax( $price, $product_category, $product_address_model, $billing_address = null, $vat_number = null, $retroactive_tax = false, $transaction_date = null ) {
+		$transaction_mode = $this->get_transaction_mode( $price, $product_category, $product_address_model, $billing_address, Avalara\DocumentType::C_SALESORDER, '0', '0', $vat_number, $retroactive_tax, $transaction_date );
 		if ( empty( $transaction_mode ) ) {
 			// Error would have been thrown in get_transaction_mode.
 			return null;
@@ -247,8 +253,9 @@ class PMProava_SDK_Wrapper {
 	 * @param string $transaction_date of transaction, defaults to today
 	 * @param bool   successful
 	 */
-	public function create_transaction( $price, $product_category, $product_address_model, $billing_address = null, $customer_code, $transaction_code, $commit = false, $transaction_date = null ) {
-		$transaction_mode = $this->get_transaction_mode( $price, $product_category, $product_address_model, $billing_address, Avalara\DocumentType::C_SALESINVOICE, $customer_code, $transaction_code, true, $commit, $transaction_date );
+	public function create_transaction( $price, $product_category, $product_address_model, $billing_address = null, $customer_code, $transaction_code, $vat_number = null, $commit = false, $transaction_date = null ) {
+		d($vat_number);
+		$transaction_mode = $this->get_transaction_mode( $price, $product_category, $product_address_model, $billing_address, Avalara\DocumentType::C_SALESINVOICE, $customer_code, $transaction_code, $vat_number, true, $commit, $transaction_date );
 		if ( empty( $transaction_mode ) ) {
 			// Error would have been thrown in get_transaction_mode.
 			return false;

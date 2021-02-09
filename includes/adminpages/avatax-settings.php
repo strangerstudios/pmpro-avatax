@@ -57,6 +57,7 @@ function pmproava_admin_init() {
 
 	add_settings_section('pmproava_section_settings', __('Settings', 'pmpro-avatax'), 'pmproava_section_settings', 'pmproava_options');
 	add_settings_field('pmproava_option_retroactive_tax', __('Include Tax in Level Price', 'pmpro-avatax'), 'pmproava_option_retroactive_tax', 'pmproava_options', 'pmproava_section_settings');
+	add_settings_field('pmproava_option_allow_vat', __('Allow Users to Enter VAT Number', 'pmpro-avatax'), 'pmproava_option_allow_vat', 'pmproava_options', 'pmproava_section_settings');
 	add_settings_field('pmproava_option_site_prefix', __('Site Prefix', 'pmpro-avatax'), 'pmproava_option_site_prefix', 'pmproava_options', 'pmproava_section_settings');
 }
 add_action("admin_init", "pmproava_admin_init");
@@ -228,6 +229,24 @@ function pmproava_section_settings() {
 		</div>
 		<?php
 	}
+}
+
+/**
+ * Show "Allow Users to Enter VAT Number" field.
+ */
+function pmproava_option_allow_vat() {
+	$options = pmproava_get_options();
+	$allow_vat = $options['allow_vat'];
+	?>
+	<select id="pmproava_retroactive_tax" name="pmproava_options[allow_vat]">
+		<option value="yes" <?php selected( $allow_vat, 'yes' ); ?>>
+			<?php _e( 'Yes', 'pmpro-avatax' ); ?>
+		</option>
+		<option value="no" <?php selected( $allow_vat, 'no' ); ?>>
+			<?php _e( 'No', 'pmpro-avatax' ); ?>
+		</option>
+	</select>
+	<?php
 }
 
 /**
