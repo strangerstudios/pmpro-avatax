@@ -30,7 +30,7 @@ function pmproava_after_order_settings( $order ) {
 					<td><?php echo $transaction_code; ?></td>
 				</tr>
 				<?php
-				$transaction = $pmproava_sdk_wrapper->get_transaction_by_code( $transaction_code );
+				$transaction = $pmproava_sdk_wrapper->get_transaction_for_order( $order );
 				if ( ! empty( $transaction ) && empty( $transaction->error ) ) {
 					?>
 					<tr>

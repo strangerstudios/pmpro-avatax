@@ -127,9 +127,8 @@ function pmproava_updated_order( $order ) {
 		return;
 	}
 
-	$transaction_code        = pmproava_get_transaction_code( $order );
 	$pmproava_sdk_wrapper    = PMProava_SDK_Wrapper::get_instance();
-	$transaction             = $pmproava_sdk_wrapper->get_transaction_by_code( $transaction_code );
+	$transaction             = $pmproava_sdk_wrapper->get_transaction_for_order( $order );
 
 	// If transaction does not already exist in AvaTax and order is voided in PMPro, return.
 	if ( empty( $transaction ) && in_array( $order->status, array( 'refunded', 'error' ) ) ) {
@@ -139,40 +138,27 @@ function pmproava_updated_order( $order ) {
 	// Void transaction if refunded/error and not already voided
 	if ( in_array( $order->status, array( 'error', 'refunded' ) ) ) {
 		if ( $transaction->status !== 'Cancelled' ) {
-			$pmproava_sdk_wrapper->void_transaction( $transaction_code );
+			$pmproava_sdk_wrapper->void_transaction_for_order( $order );
 		}
 		return;
 	}
 
 	// Create/update transaction.
-	$price                       = $order->total;
-	$product_category            = pmproava_get_product_category( $order->membership_id );
-	$product_address_model       = pmproava_get_product_address_model( $order->membership_id );
-	$billing_address             = new stdClass();
-	$billing_address->line1      = $order->billing->street;
-	$billing_address->city       = $order->billing->city;
-	$billing_address->region     = $order->billing->state;
-	$billing_address->postalCode = $order->billing->zip;
-	$billing_address->country    = $order->billing->country;
-	$customer_code               = pmproava_get_customer_code( $order->user_id );
-	$commit                      = in_array( $order->status, array( 'success', 'cancelled' ) ) ? true : false;
-	$transaction_date            = ! empty( $order->timestamp ) ? date( 'Y-m-d', $order->getTimestamp( true ) ): null;
-	if ( ! $pmproava_sdk_wrapper->create_transaction( $price, $product_category, $product_address_model, $billing_address, $customer_code, $transaction_code, $commit, $transaction_date ) ) {
-		pmproava_save_order_error( $order );
-		return;
-	}
+	$pmproava_sdk_wrapper->update_transaction_from_order( $order );
 
 	// Get new/updated transaction.
-	$transaction = $pmproava_sdk_wrapper->get_transaction_by_code( $transaction_code );
+	$transaction = $pmproava_sdk_wrapper->get_transaction_for_order( $order );
 
 	// Update subtotal and tax fields in PMPro.
-	$wpdb->query( "
-	UPDATE $wpdb->pmpro_membership_orders
-	SET `subtotal` = '" . esc_sql( $transaction->totalAmount ) . "',
-		`tax` = '" . esc_sql( $transaction->totalTax ) . "'
-	WHERE id = '" . esc_sql( $order->id ) . "'
-	LIMIT 1"
-	);
+	if ( $transaction ) {
+		$wpdb->query( "
+		UPDATE $wpdb->pmpro_membership_orders
+		SET `subtotal` = '" . esc_sql( $transaction->totalAmount ) . "',
+			`tax` = '" . esc_sql( $transaction->totalTax ) . "'
+		WHERE id = '" . esc_sql( $order->id ) . "'
+		LIMIT 1"
+		);
+	}
 
 	// Clear AvaTax errors for order.
 	pmproava_save_order_error( $order );

@@ -7,6 +7,9 @@ class PMProava_SDK_Wrapper {
 	private $AvaTaxClient      = null;
 	private $transaction_cache = array();
 
+	/*
+	 * --------- SETUP ---------
+	 */
 	/**
 	 * Connect to AvaTax.
 	 *
@@ -34,75 +37,43 @@ class PMProava_SDK_Wrapper {
 		return self::$instance;
 	}
 
-	/**
-	 * Check whether the user's Avalara credentials are valid.
-	 *
-	 * @return bool
+	/*
+	 * --------- GETTERS ---------
 	 */
-	public function check_credentials() {
-		static $credentials_valid = null;
-		if ( $credentials_valid === null ) {
-			$credentials_valid = $this->AvaTaxClient->ping()->authenticated;
+
+	public function get_transaction_for_order( $order, $document_type = Avalara\DocumentType::C_SALESINVOICE ) {
+		$transaction_code = pmproava_get_transaction_code( $order );
+
+		if ( empty( $this->transaction_cache[$transaction_code] ) ) {
+			$this->transaction_cache[$transaction_code] = array();
 		}
-		return $credentials_valid;
+
+		if ( empty( $this->transaction_cache[$transaction_code][$document_type] ) ) {
+			$pmproava_options = pmproava_get_options();
+			$response = $this->AvaTaxClient->getTransactionByCode( $pmproava_options['company_code'], $transaction_code, $document_type );
+			if ( isset( $response->error ) ) {
+				$this->transaction_cache[$transaction_code][$document_type] = null;
+			} else {
+				$this->transaction_cache[$transaction_code][$document_type] = $response;
+			}
+		}
+		return $this->transaction_cache[$transaction_code][$document_type];
 	}
 
-	/**
-	 * Validate an address.
-	 *
-	 * @param object $address of buyer
-	 * @return object
+	/*
+	 * --------- ACTIONS ---------
 	 */
-	public function validate_address( $address ) {
-		if ( empty( $address ) ) {
-			global $pmproava_error;
-			$pmproava_error = 'Error while validating address: No address was passed';
-			return null;
-		}
 
-		$response = $this->AvaTaxClient->resolveAddress(
-			isset( $address->line1 ) ? $address->line1 : '',
-			isset( $address->line2 ) ? $address->line2 : '',
-			isset( $address->line3 ) ? $address->line3 : '',
-			isset( $address->city ) ? $address->city : '',
-			isset( $address->region ) ? $address->region : '',
-			isset( $address->postalCode ) ? $address->postalCode : '',
-			isset( $address->country ) ? $address->country : '',
-			'Mixed' // Text case.
-		);
-
-		if ( ! empty( $response->messages ) ) {
-			// Invalid address.
-			global $pmproava_error;
-			$pmproava_error = 'Error while validating address: ' . $response->messages[0]->summary;
-			return null;
-		} elseif ( ! empty( $response->error ) ) {
-			global $pmproava_error;
-			$pmproava_error = 'Error while validating address: ' . $response->error->message;
-			return null;
-		}
-		return $response->validatedAddresses[0];
-	}
-
-	/**
+	 /**
 	 * Create a Avalara\TransactionMode object.
 	 *
-	 * @param float  $price to calculate tax for
-	 * @param string $product_category being purchased
-	 * @param string $product_address_model being purchased
-	 * @param object $billing_address of buyer
-	 * @param string $document_type of transaction
-	 * @param string $customer_code of buyer
-	 * @param string $transaction_code of invoice
-	 * @param bool   $retroactive_tax if tax is included in $price
-	 * @param bool   $commit transaction
-	 * @param string $transaction_date of transaction, defaults to today
+	 * @param array $args to build transaction from.
 	 * @return Avalara\TransactionMode|null
 	 */
-	private function get_transaction_mode( $price, $product_category, $product_address_model, $billing_address = null, $document_type = Avalara\DocumentType::C_SALESORDER, $customer_code = '0', $transaction_code = '0', $retroactive_tax = false, $commit = false, $transaction_date = null ) {
+	private function build_transaction( $args ) {
 		if ( ! $this->check_credentials() ) {
 			global $pmproava_error;
-			$pmproava_error = "Could not validate credentials in 'get_transaction_mode()'";
+			$pmproava_error = "Could not validate credentials in 'build_transaction()'";
 			return null;
 		}
 
@@ -113,6 +84,21 @@ class PMProava_SDK_Wrapper {
 			// Invalid company address. Error would have been thrown in that function.
 			return null;
 		}
+
+		$default_args = array(
+			'price' => 0,
+			'product_category' => PMPROAVA_GENERAL_MERCHANDISE,
+			'product_address_model' => 'shipToFrom',
+			'billing_address' => null,
+			'document_type' => Avalara\DocumentType::C_SALESORDER,
+			'customer_code' => '0',
+			'transaction_code' => '0',
+			'retroactive_tax' => true,
+			'commit' => false,
+			'transaction_date' => null,
+		);
+		$args = array_merge( $default_args, $args );
+		extract( $args );
 
 		// Create a transaction in Avalara.
 		$transaction_builder = new Avalara\TransactionBuilder(
@@ -210,19 +196,61 @@ class PMProava_SDK_Wrapper {
 	 * @return float|null
 	 */
 	public function calculate_tax( $price, $product_category, $product_address_model, $billing_address = null, $retroactive_tax = false, $transaction_date = null ) {
-		$transaction_mode = $this->get_transaction_mode( $price, $product_category, $product_address_model, $billing_address, Avalara\DocumentType::C_SALESORDER, '0', '0', $retroactive_tax, $transaction_date );
+		$args = array(
+			'price' => $price,
+			'product_category' => $product_category,
+			'product_address_model' => $product_address_model,
+			'billing_address' => $billing_address,
+			'document_type' => Avalara\DocumentType::C_SALESORDER,
+			'retroactive_tax' => $retroactive_tax,
+		);
+
+		$transaction_mode = $this->build_transaction( $args );
 		if ( empty( $transaction_mode ) ) {
-			// Error would have been thrown in get_transaction_mode.
+			// Error would have been thrown in build_transaction.
 			return null;
 		}
 		return $transaction_mode->totalTax;
 	}
 
-	public function void_transaction( $transaction_code, $document_type = Avalara\DocumentType::C_SALESINVOICE ) {
+	public function update_transaction_from_order( $order ) {
+		// Construct billing address.
+		$billing_address             = new stdClass();
+		$billing_address->line1      = $order->billing->street;
+		$billing_address->city       = $order->billing->city;
+		$billing_address->region     = $order->billing->state;
+		$billing_address->postalCode = $order->billing->zip;
+		$billing_address->country    = $order->billing->country;
+
+		// Get args to send.
+		$args = array(
+			'price' => $order->total,
+			'product_category' => pmproava_get_product_category( $order->membership_id ),
+			'product_address_model' => pmproava_get_product_address_model( $order->membership_id ),
+			'billing_address' => $billing_address,
+			'document_type' => Avalara\DocumentType::C_SALESINVOICE,
+			'customer_code' => pmproava_get_customer_code( $order->user_id ),
+			'transaction_code' => pmproava_get_transaction_code( $order ),
+			'retroactive_tax' => true,
+			'commit' => in_array( $order->status, array( 'success', 'cancelled' ) ) ? true : false,
+			'transaction_date' => ! empty( $order->timestamp ) ? date( 'Y-m-d', $order->getTimestamp( true ) ): null,
+		);
+
+		// Update transaction.
+		if ( empty( $this->build_transaction( $args ) ) ) {
+			pmproava_save_order_error( $order );
+			return false;
+		}
+		return true;
+	}
+
+	public function void_transaction_for_order( $order, $document_type = Avalara\DocumentType::C_SALESINVOICE ) {
 		$pmproava_options = pmproava_get_options();
+		$transaction_code = pmproava_get_transaction_code( $order );
 		$void_transaction_model = new Avalara\VoidTransactionModel();
 		$void_transaction_model->code = Avalara\VoidReasonCode::C_DOCVOIDED;
 		$transaction_model = $this->AvaTaxClient->voidTransaction( $pmproava_options['company_code'], $transaction_code, $document_type, null, $void_transaction_model );
+		unset( $this->transaction_cache[ $transaction_code ] );
 	}
 
 	public function lock_transaction( $transaction_code, $document_type = Avalara\DocumentType::C_SALESINVOICE ) {
@@ -237,38 +265,59 @@ class PMProava_SDK_Wrapper {
 		$transaction_model = $this->AvaTaxClient->lockTransaction( $pmproava_options['company_code'], $transaction_code, $document_type, null, $lock_transaction_model );
 	}
 
-	/**
-	 * Calculate tax amount without creating a transaction in Avalara.
-	 *
-	 * @param float  $price paid
-	 * @param string $product_category purchased
-	 * @param string $product_address_model purchased
-	 * @param object $billing_address of buyer
-	 * @param string $transaction_date of transaction, defaults to today
-	 * @param bool   successful
+	/*
+	 * --------- HELPERS ---------
 	 */
-	public function create_transaction( $price, $product_category, $product_address_model, $billing_address = null, $customer_code, $transaction_code, $commit = false, $transaction_date = null ) {
-		$transaction_mode = $this->get_transaction_mode( $price, $product_category, $product_address_model, $billing_address, Avalara\DocumentType::C_SALESINVOICE, $customer_code, $transaction_code, true, $commit, $transaction_date );
-		if ( empty( $transaction_mode ) ) {
-			// Error would have been thrown in get_transaction_mode.
-			return false;
+
+	/**
+	 * Check whether the user's Avalara credentials are valid.
+	 *
+	 * @return bool
+	 */
+	public function check_credentials() {
+		static $credentials_valid = null;
+		if ( $credentials_valid === null ) {
+			$credentials_valid = $this->AvaTaxClient->ping()->authenticated;
 		}
-		return true;
+		return $credentials_valid;
 	}
 
-	public function get_transaction_by_code( $transaction_code, $document_type = Avalara\DocumentType::C_SALESINVOICE ) {
-		if ( empty( $this->transaction_cache[$transaction_code] ) ) {
-			$this->transaction_cache[$transaction_code] = array();
+	/**
+	 * Validate an address.
+	 *
+	 * @param object $address of buyer
+	 * @return object
+	 */
+	public function validate_address( $address ) {
+		if ( empty( $address ) ) {
+			global $pmproava_error;
+			$pmproava_error = 'Error while validating address: No address was passed';
+			return null;
 		}
 
-		if ( empty( $this->transaction_cache[$transaction_code][$document_type] ) ) {
-			$pmproava_options = pmproava_get_options();
-			$response = $this->AvaTaxClient->getTransactionByCode( $pmproava_options['company_code'], $transaction_code, $document_type );
-			if ( isset( $response->error ) ) {
-				$this->transaction_cache[$transaction_code][$document_type] = null;
-			}
-			$this->transaction_cache[$transaction_code][$document_type] = $response;
+		$response = $this->AvaTaxClient->resolveAddress(
+			isset( $address->line1 ) ? $address->line1 : '',
+			isset( $address->line2 ) ? $address->line2 : '',
+			isset( $address->line3 ) ? $address->line3 : '',
+			isset( $address->city ) ? $address->city : '',
+			isset( $address->region ) ? $address->region : '',
+			isset( $address->postalCode ) ? $address->postalCode : '',
+			isset( $address->country ) ? $address->country : '',
+			'Mixed' // Text case.
+		);
+
+		if ( ! empty( $response->messages ) ) {
+			// Invalid address.
+			global $pmproava_error;
+			$pmproava_error = 'Error while validating address: ' . $response->messages[0]->summary;
+			return null;
+		} elseif ( ! empty( $response->error ) ) {
+			global $pmproava_error;
+			$pmproava_error = 'Error while validating address: ' . $response->error->message;
+			return null;
 		}
-		return $this->transaction_cache[$transaction_code][$document_type];
+		return $response->validatedAddresses[0];
 	}
+
+	
 }
