@@ -96,6 +96,7 @@ class PMPro_AvaTax {
 			'retroactive_tax' => true,
 			'commit' => false,
 			'transaction_date' => null,
+			'currency' => 'USD',
 		);
 		$args = array_merge( $default_args, $args );
 		extract( $args );
@@ -163,6 +164,8 @@ class PMPro_AvaTax {
 			$product_category    // $taxCode
 		);
 
+		// Set currency.
+		$transaction_builder->withCurrencyCode( $currency );
 
 		// Make tax retroactive if needed.
 		if ( $retroactive_tax ) {
@@ -196,6 +199,7 @@ class PMPro_AvaTax {
 	 * @return float|null
 	 */
 	public function calculate_tax( $price, $product_category, $product_address_model, $billing_address = null, $retroactive_tax = false, $transaction_date = null ) {
+		global $pmpro_currency;
 		$args = array(
 			'price' => $price,
 			'product_category' => $product_category,
@@ -203,6 +207,7 @@ class PMPro_AvaTax {
 			'billing_address' => $billing_address,
 			'document_type' => Avalara\DocumentType::C_SALESORDER,
 			'retroactive_tax' => $retroactive_tax,
+			'currency' => $pmpro_currency,
 		);
 
 		$transaction_mode = $this->build_transaction( $args );
@@ -214,6 +219,8 @@ class PMPro_AvaTax {
 	}
 
 	public function update_transaction_from_order( $order ) {
+		global $pmpro_currency;
+
 		// Construct billing address.
 		$billing_address             = new stdClass();
 		$billing_address->line1      = $order->billing->street;
@@ -234,6 +241,7 @@ class PMPro_AvaTax {
 			'retroactive_tax' => true,
 			'commit' => in_array( $order->status, array( 'success', 'cancelled' ) ) ? true : false,
 			'transaction_date' => ! empty( $order->timestamp ) ? date( 'Y-m-d', $order->getTimestamp( true ) ): null,
+			'currency' => $pmpro_currency,
 		);
 
 		// Update transaction.
