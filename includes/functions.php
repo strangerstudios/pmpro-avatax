@@ -135,6 +135,11 @@ function pmproava_updated_order( $order ) {
 		return;
 	}
 
+	// If transaction does not already exist in AvaTax and order is voided in PMPro, return.
+	if ( empty( $transaction ) && empty( intval( $order->total ) ) ) {
+		return;
+	}
+
 	// Void transaction if refunded/error and not already voided
 	if ( in_array( $order->status, array( 'error', 'refunded' ) ) ) {
 		if ( $transaction->status !== 'Cancelled' ) {
