@@ -8,27 +8,15 @@ function pmproava_checkout_boxes() {
 
 	if ( ! $retroactive_tax ) {
 		?>
-		<table id="pmpro_sales_tax" class="pmpro_checkout" width="100%" cellpadding="0" cellspacing="0" border="0">
-		<thead>
-			<tr>
-				<th>
-					<?php _e( 'Sales Tax', 'pmpro-avatax' ); ?>
-				</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr>
-				<td>
-					<div>
-				<?php echo "<p id='pmproava_tax_estimate'>" . __( 'Tax has not yet been calculated.', 'pmpro-avatax' ) . "</p>"; ?>
-					</div>
-				</td>
-				<td>
-					<input id="pmproava_calculate_tax" class="button" name="pmproava_calculate_tax" value="<?php _e( 'Calculate Tax', 'pmpro-avatax' ); ?>" type="button"/>
-				</td>
-			</tr>
-		</tbody>
-		</table>
+		<div class="pmpro_checkout">
+			<h3><span class="pmpro_checkout-h3-name"><?php _e( 'Sales Tax', 'pmpro-avatax' ); ?></span></h3>
+			<div class="pmpro_checkout-fields">
+				<div class="pmpro_checkout-field pmpro_payment-account-number">
+					<?php echo "<p id='pmproava_tax_estimate'>" . __( 'Tax has not yet been calculated.', 'pmpro-avatax' ) . "</p>"; ?>
+					<input id="pmproava_calculate_tax" class="button" name="pmproava_calculate_tax" value="<?php _e( 'Calculate Tax', 'pmpro-avatax' ); ?>" type="button"/>				
+				</div>
+			</div>
+		</div>
 		<?php
 	}
 }
