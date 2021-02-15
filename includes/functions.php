@@ -54,10 +54,17 @@ function pmproava_options_validate($input) {
 	}
 	if ( isset($input['retroactive_tax']) && $input['retroactive_tax'] === 'no' ) {
 		$newinput['retroactive_tax'] = 'no';
+	} elseif ( isset( $input['retroactive_tax'] ) ) {
+		$newinput['retroactive_tax'] = 'yes';
+	}
+	if ( isset($input['vat_field']) && $input['vat_field'] === 'no' ) {
+		$newinput['vat_field'] = 'no';
+	} elseif ( isset( $input['vat_field'] ) ) {
+		$newinput['vat_field'] = 'yes';
 	}
 	if ( isset($input['site_prefix'] ) ) {
 		$newinput['site_prefix'] = trim( preg_replace("[^a-zA-Z0-9\-]", "", $input['site_prefix'] ) );
-	}
+	}	
 	return $newinput;
 }
 

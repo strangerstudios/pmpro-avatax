@@ -57,6 +57,7 @@ function pmproava_admin_init() {
 
 	add_settings_section('pmproava_section_settings', __('Settings', 'pmpro-avatax'), 'pmproava_section_settings', 'pmproava_options');
 	add_settings_field('pmproava_option_retroactive_tax', __('Include Tax in Level Price', 'pmpro-avatax'), 'pmproava_option_retroactive_tax', 'pmproava_options', 'pmproava_section_settings');
+	add_settings_field('pmproava_option_vat_field', __('Show VAT Field at Checkout', 'pmpro-avatax'), 'pmproava_option_vat_field', 'pmproava_options', 'pmproava_section_settings');
 	add_settings_field('pmproava_option_site_prefix', __('Site Prefix', 'pmpro-avatax'), 'pmproava_option_site_prefix', 'pmproava_options', 'pmproava_section_settings');
 }
 add_action("admin_init", "pmproava_admin_init");
@@ -249,11 +250,30 @@ function pmproava_option_retroactive_tax() {
 }
 
 /**
+ * Show "Show VAT Field at Checkout" field.
+ */
+function pmproava_option_vat_field() {
+	$options = pmproava_get_options();	
+	$vat_field = $options['vat_field'];
+	?>
+	<select id="pmproava_vat_field" name="pmproava_options[vat_field]">
+		<option value="yes" <?php selected( $vat_field, 'yes' ); ?>>
+			<?php _e( 'Yes', 'pmpro-avatax' ); ?>
+		</option>
+		<option value="no" <?php selected( $vat_field, 'no' ); ?>>
+			<?php _e( 'No', 'pmpro-avatax' ); ?>
+		</option>
+	</select>
+	<p class="description"><?php _e( 'If your country has a VAT tax, enable this feature to collect VAT numbers at checkout.', 'pmpro-avatax' );?></p>
+	<?php
+}
+
+/**
  * Show "Site Prefix" field.
  */
 function pmproava_option_site_prefix() {
 	$options = pmproava_get_options();
 	$site_prefix = $options['site_prefix'];
 	echo "<input id='pmproava_site_prefix' name='pmproava_options[site_prefix]' size='80' type='text' value='" . esc_attr( $site_prefix ) . "' />";
-	echo '<br><small>' . esc_html__( 'Prefix for customer codes and invoice codes in Avatax.', 'pmpro-avatax' ) . '</small>';
+	echo '<p class="description">' . esc_html__( 'Prefix for customer codes and invoice codes in Avatax.', 'pmpro-avatax' ) . '</p>';
 }
