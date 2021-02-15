@@ -12,7 +12,7 @@ function pmproava_checkout_boxes() {
 		<thead>
 			<tr>
 				<th>
-					Sales Tax
+					<?php _e( 'Sales Tax', 'pmpro-avatax' ); ?>
 				</th>
 			</tr>
 		</thead>
