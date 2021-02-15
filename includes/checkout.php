@@ -3,19 +3,40 @@
 function pmproava_checkout_boxes() {
 	global $pmpro_level;
 
-	$options = pmproava_get_options();
+	$options = pmproava_get_options();		
 	$retroactive_tax = $options['retroactive_tax'] === 'yes' ? true : false;
+	$vat_field = $options['vat_field'] === 'yes' ? true : false;
 
-	if ( ! $retroactive_tax ) {
+	if ( ! empty( $_REQUEST['pmproava_vat_number'] ) ) {
+		$pmproava_show_vat = true;
+		$pmproava_vat_number = sanitize_text_field( $_REQUEST['pmproava_vat_number'] );
+	} else {
+		$pmproava_show_vat = false;
+		$pmproava_vat_number = '';
+	}
+
+	if ( ! $retroactive_tax || $vat_field ) {
 		?>
 		<div class="pmpro_checkout">
-			<h3><span class="pmpro_checkout-h3-name"><?php _e( 'Sales Tax', 'pmpro-avatax' ); ?></span></h3>
+			<h3><span class="pmpro_checkout-h3-name"><?php _e( 'Tax', 'pmpro-avatax' ); ?></span></h3>
 			<div class="pmpro_checkout-fields">
-				<div class="pmpro_checkout-field pmpro_payment-account-number">
-					<?php echo "<p id='pmproava_tax_estimate'>" . __( 'Tax has not yet been calculated.', 'pmpro-avatax' ) . "</p>"; ?>
-					<input id="pmproava_calculate_tax" class="button" name="pmproava_calculate_tax" value="<?php _e( 'Calculate Tax', 'pmpro-avatax' ); ?>" type="button"/>				
-				</div>
-			</div>
+			<?php if ( ! $retroactive_tax ) { ?>				
+					<div class="pmpro_checkout-field">
+						<?php echo "<p id='pmproava_tax_estimate'>" . __( 'Tax has not yet been calculated.', 'pmpro-avatax' ) . "</p>"; ?>
+						<input id="pmproava_calculate_tax" class="button" name="pmproava_calculate_tax" value="<?php _e( 'Calculate Tax', 'pmpro-avatax' ); ?>" type="button"/>				
+					</div>				
+			<?php } ?>
+			<?php if ( $vat_field ) { ?>
+				<div id="pmproava_have_vat_number" class="pmpro_checkout-field pmpro_checkout-field-checkbox">
+					<input id="pmproava_show_vat" type="checkbox" name="pmproava_show_vat" value="1" <?php checked($pmproava_show_vat, 1);?>>
+					<label for="pmproava_show_vat" class="pmpro_clickable"><?php printf( __( 'Check if you have a VAT Number for %s.', 'pmpro-avatax'), $options['company_address']->country );?></label>
+				</div> <!-- end vat_have_number -->
+				<div id="pmproava_vat_number_div" class="pmpro_checkout-field">
+					<label for="pmproava_vat_number"><?php _e('Vat Number', 'pmpro-avatax');?></label>
+					<input id="pmproava_vat_number" name="pmproava_vat_number" class="input" type="text"  size="20" value="<?php echo esc_attr($pmproava_vat_number);?>" />					
+				</div> <!-- end vat_number_validation_tr -->
+			<?php } ?>
+			</div>			
 		</div>
 		<?php
 	}
