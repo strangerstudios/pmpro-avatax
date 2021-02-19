@@ -4,7 +4,7 @@
  * Add settings page.
  */
 function pmproava_admin_add_page() {
-	add_submenu_page( 'pmpro-dashboard', __( 'PMPro AvaTax', 'pmpro-avatax' ), __( 'PMPro AvaTax', 'pmpro-avatax' ), 'manage_options', 'pmpro-avatax', 'pmproava_admin_page' );
+	add_submenu_page( 'pmpro-dashboard', __( 'AvaTax Integration Settings', 'pmpro-avatax' ), __( 'AvaTax', 'pmpro-avatax' ), 'manage_options', 'pmpro-avatax', 'pmproava_admin_page' );
 }
 add_action( 'admin_menu', 'pmproava_admin_add_page' );
 
@@ -12,25 +12,23 @@ add_action( 'admin_menu', 'pmproava_admin_add_page' );
  * Display settings page.
  */
 function pmproava_admin_page() {
+
+	/**
+	 * Load the Paid Memberships Pro admin page header.
+	 *
+	 */
+	require_once( PMPRO_DIR . '/adminpages/admin_header.php' );
 	?>
-	<div class="wrap">
-		<div id="icon-options-general" class="icon32"><br></div>
-		<h2><?php _e( 'AvaTax Integration Options and Settings', 'pmpro-avatax' );?></h2>
-
-		<?php if (!empty($msg)) { ?>
-			<div class="message <?php echo $msgt; ?>"><p><?php echo $msg; ?></p></div>
-		<?php } ?>
-
-		<form action="options.php" method="post">
-			<?php settings_fields('pmproava_options'); ?>
-			<?php do_settings_sections('pmproava_options'); ?>
-			<p><br/></p>
-			<div class="bottom-buttons">
-				<input type="hidden" name="pmproava_options[set]" value="1"/>
-				<input type="submit" name="submit" class="button-primary" value="<?php esc_attr_e(__('Save Settings', 'pmpro-avatax')); ?>">
-			</div>
-		</form>
-	</div>
+	<h1><?php esc_html_e( 'AvaTax Integration Settings', 'pmpro-avatax' );?></h1>
+	<hr />
+	<form action="options.php" method="post">
+		<?php settings_fields( 'pmproava_options' ); ?>
+		<?php do_settings_sections( 'pmproava_options' ); ?>
+		<p class="submit">
+			<input type="hidden" name="pmproava_options[set]" value="1"/>
+			<input type="submit" name="submit" class="button button-primary" value="<?php esc_attr_e(__('Save Settings', 'pmpro-avatax')); ?>">
+		</p>
+	</form>
 	<?php
 }
 
@@ -40,24 +38,24 @@ function pmproava_admin_page() {
 function pmproava_admin_init() {
 	//setup settings
 	register_setting('pmproava_options', 'pmproava_options', 'pmproava_options_validate');
-	add_settings_section('pmproava_section_credentials', __('Credentials', 'pmpro-avatax'), 'pmproava_section_credentials', 'pmproava_options');
+	add_settings_section('pmproava_section_credentials', __('AvaTax Credentials', 'pmpro-avatax'), 'pmproava_section_credentials', 'pmproava_options');
 	add_settings_field('pmproava_option_account_number', __('Account Number', 'pmpro-avatax'), 'pmproava_option_account_number', 'pmproava_options', 'pmproava_section_credentials');
 	add_settings_field('pmproava_option_license_key', __('Licence Key', 'pmpro-avatax'), 'pmproava_option_license_key', 'pmproava_options', 'pmproava_section_credentials');
 	add_settings_field('pmproava_option_environment', __('Environment', 'pmpro-avatax'), 'pmproava_option_environment', 'pmproava_options', 'pmproava_section_credentials');
 
-	add_settings_section('pmproava_section_company', __('Company', 'pmpro-avatax'), 'pmproava_section_company', 'pmproava_options');
+	add_settings_section('pmproava_section_company', __('Company Information', 'pmpro-avatax'), 'pmproava_section_company', 'pmproava_options');
 	add_settings_field('pmproava_option_company_code', __('Code', 'pmpro-avatax'), 'pmproava_option_company_code', 'pmproava_options', 'pmproava_section_company');
-	add_settings_field('pmproava_option_company_address_line1', __('Line 1', 'pmpro-avatax'), 'pmproava_option_company_address_line1', 'pmproava_options', 'pmproava_section_company');
-	add_settings_field('pmproava_option_company_address_line2', __('Line 2', 'pmpro-avatax'), 'pmproava_option_company_address_line2', 'pmproava_options', 'pmproava_section_company');
-	add_settings_field('pmproava_option_company_address_line3', __('Line 3', 'pmpro-avatax'), 'pmproava_option_company_address_line3', 'pmproava_options', 'pmproava_section_company');
+	add_settings_field('pmproava_option_company_address_line1', __('Address Line 1', 'pmpro-avatax'), 'pmproava_option_company_address_line1', 'pmproava_options', 'pmproava_section_company');
+	add_settings_field('pmproava_option_company_address_line2', __('Address Line 2', 'pmpro-avatax'), 'pmproava_option_company_address_line2', 'pmproava_options', 'pmproava_section_company');
+	add_settings_field('pmproava_option_company_address_line3', __('Address Line 3', 'pmpro-avatax'), 'pmproava_option_company_address_line3', 'pmproava_options', 'pmproava_section_company');
 	add_settings_field('pmproava_option_company_address_city', __('City', 'pmpro-avatax'), 'pmproava_option_company_address_city', 'pmproava_options', 'pmproava_section_company');
 	add_settings_field('pmproava_option_company_address_region', __('Region', 'pmpro-avatax'), 'pmproava_option_company_address_region', 'pmproava_options', 'pmproava_section_company');
 	add_settings_field('pmproava_option_company_address_postalCode', __('Postal Code', 'pmpro-avatax'), 'pmproava_option_company_address_postalCode', 'pmproava_options', 'pmproava_section_company');
 	add_settings_field('pmproava_option_company_address_country', __('Country', 'pmpro-avatax'), 'pmproava_option_company_address_country', 'pmproava_options', 'pmproava_section_company');
 
-	add_settings_section('pmproava_section_settings', __('Settings', 'pmpro-avatax'), 'pmproava_section_settings', 'pmproava_options');
-	add_settings_field('pmproava_option_retroactive_tax', __('Include Tax in Level Price', 'pmpro-avatax'), 'pmproava_option_retroactive_tax', 'pmproava_options', 'pmproava_section_settings');
-	add_settings_field('pmproava_option_vat_field', __('Show VAT Field at Checkout', 'pmpro-avatax'), 'pmproava_option_vat_field', 'pmproava_options', 'pmproava_section_settings');
+	add_settings_section('pmproava_section_settings', __('Additional Settings', 'pmpro-avatax'), 'pmproava_section_settings', 'pmproava_options');
+	add_settings_field('pmproava_option_retroactive_tax', __('Include tax in level price?', 'pmpro-avatax'), 'pmproava_option_retroactive_tax', 'pmproava_options', 'pmproava_section_settings');
+	add_settings_field('pmproava_option_vat_field', __('Show VAT field at checkout?', 'pmpro-avatax'), 'pmproava_option_vat_field', 'pmproava_options', 'pmproava_section_settings');
 	add_settings_field('pmproava_option_site_prefix', __('Site Prefix', 'pmpro-avatax'), 'pmproava_option_site_prefix', 'pmproava_options', 'pmproava_section_settings');
 }
 add_action("admin_init", "pmproava_admin_init");
@@ -89,7 +87,7 @@ function pmproava_section_credentials() {
 function pmproava_option_account_number() {
 	$options = pmproava_get_options();
 	$account_number = $options['account_number'] ;
-	echo "<input id='pmproava_account_number' name='pmproava_options[account_number]' size='80' type='text' value='" . esc_attr( $account_number ) . "' />";
+	echo "<input id='pmproava_account_number' name='pmproava_options[account_number]' class='regular-text' type='text' value='" . esc_attr( $account_number ) . "' />";
 }
 
 /**
@@ -98,7 +96,7 @@ function pmproava_option_account_number() {
 function pmproava_option_license_key() {
 	$options = pmproava_get_options();
 	$license_key = $options['license_key'];
-	echo "<input id='pmproava_license_key' name='pmproava_options[license_key]' size='80' type='text' value='" . esc_attr( $license_key ) . "' />";
+	echo "<input id='pmproava_license_key' name='pmproava_options[license_key]' class='regular-text' type='text' value='" . esc_attr( $license_key ) . "' />";
 }
 
 /**
@@ -146,7 +144,8 @@ function pmproava_section_company() {
 function pmproava_option_company_code() {
 	$options = pmproava_get_options();
 	$company_code = $options['company_code'];
-	echo "<input id='pmproava_company_code' name='pmproava_options[company_code]' size='80' type='text' value='" . esc_attr( $company_code ) . "' />";
+	echo "<input id='pmproava_company_code' name='pmproava_options[company_code]' class='regular-text' type='text' value='" . esc_attr( $company_code ) . "' />";
+	echo '<p class="description">' . esc_html( 'Create a unique code to identify the company you are connecting to AvaTax.', 'pmpro-avatax' ) . '</p>';
 }
 
 /**
@@ -155,7 +154,7 @@ function pmproava_option_company_code() {
 function pmproava_option_company_address_line1() {
 	$options = pmproava_get_options();
 	$company_address_line1 = $options['company_address']->line1;
-	echo "<input id='pmproava_company_address_line1' name='pmproava_options[company_address][line1]' size='80' type='text' value='" . esc_attr( $company_address_line1 ) . "' />";
+	echo "<input id='pmproava_company_address_line1' name='pmproava_options[company_address][line1]' class='regular-text' type='text' value='" . esc_attr( $company_address_line1 ) . "' />";
 }
 
 /**
@@ -164,7 +163,7 @@ function pmproava_option_company_address_line1() {
 function pmproava_option_company_address_line2() {
 	$options = pmproava_get_options();
 	$company_address_line2 = $options['company_address']->line2;
-	echo "<input id='pmproava_company_address_line2' name='pmproava_options[company_address][line2]' size='80' type='text' value='" . esc_attr( $company_address_line2 ) . "' />";
+	echo "<input id='pmproava_company_address_line2' name='pmproava_options[company_address][line2]' class='regular-text' type='text' value='" . esc_attr( $company_address_line2 ) . "' />";
 }
 
 /**
@@ -173,7 +172,7 @@ function pmproava_option_company_address_line2() {
 function pmproava_option_company_address_line3() {
 	$options = pmproava_get_options();
 	$company_address_line3 = $options['company_address']->line3;
-	echo "<input id='pmproava_company_address_line3' name='pmproava_options[company_address][line3]' size='80' type='text' value='" . esc_attr( $company_address_line3 ) . "' />";
+	echo "<input id='pmproava_company_address_line3' name='pmproava_options[company_address][line3]' class='regular-text' type='text' value='" . esc_attr( $company_address_line3 ) . "' />";
 }
 
 /**
@@ -182,7 +181,7 @@ function pmproava_option_company_address_line3() {
 function pmproava_option_company_address_city() {
 	$options = pmproava_get_options();
 	$company_address_city= $options['company_address']->city;
-	echo "<input id='pmproava_company_address_city' name='pmproava_options[company_address][city]' size='80' type='text' value='" . esc_attr( $company_address_city ) . "' />";
+	echo "<input id='pmproava_company_address_city' name='pmproava_options[company_address][city]' class='regular-text' type='text' value='" . esc_attr( $company_address_city ) . "' />";
 }
 
 /**
@@ -191,7 +190,7 @@ function pmproava_option_company_address_city() {
 function pmproava_option_company_address_region() {
 	$options = pmproava_get_options();
 	$company_address_region = $options['company_address']->region;
-	echo "<input id='pmproava_company_address_region' name='pmproava_options[company_address][region]' size='80' type='text' value='" . esc_attr( $company_address_region ) . "' />";
+	echo "<input id='pmproava_company_address_region' name='pmproava_options[company_address][region]' class='regular-text' type='text' value='" . esc_attr( $company_address_region ) . "' />";
 }
 
 /**
@@ -200,7 +199,7 @@ function pmproava_option_company_address_region() {
 function pmproava_option_company_address_postalCode() {
 	$options = pmproava_get_options();
 	$company_address_postalCode = $options['company_address']->postalCode;
-	echo "<input id='pmproava_company_address_postalCode' name='pmproava_options[company_address][postalCode]' size='80' type='text' value='" . esc_attr( $company_address_postalCode ) . "' />";
+	echo "<input id='pmproava_company_address_postalCode' name='pmproava_options[company_address][postalCode]' class='regular-text' type='text' value='" . esc_attr( $company_address_postalCode ) . "' />";
 }
 
 /**
@@ -209,7 +208,7 @@ function pmproava_option_company_address_postalCode() {
 function pmproava_option_company_address_country() {
 	$options = pmproava_get_options();
 	$company_address_country = $options['company_address']->country;
-	echo "<input id='pmproava_company_address_country' name='pmproava_options[company_address][country]' size='80' type='text' value='" . esc_attr( $company_address_country ) . "' />";
+	echo "<input id='pmproava_company_address_country' name='pmproava_options[company_address][country]' class='regular-text' type='text' value='" . esc_attr( $company_address_country ) . "' />";
 }
 
 /**
@@ -225,7 +224,7 @@ function pmproava_section_settings() {
 	if ( empty( $options['site_prefix'] ) ) {
 		?>
 		<div class="notice notice-warning">
-			<p><strong><?php esc_html_e( 'Setting the "Site Prefix" field is highly reccomended.', 'pmpro-avatax' ); ?></strong></p>
+			<p><strong><?php esc_html_e( 'Setting the "Site Prefix" field is highly recommended.', 'pmpro-avatax' ); ?></strong></p>
 		</div>
 		<?php
 	}
@@ -240,7 +239,7 @@ function pmproava_option_retroactive_tax() {
 	?>
 	<select id="pmproava_retroactive_tax" name="pmproava_options[retroactive_tax]">
 		<option value="yes" <?php selected( $retroactive_tax, 'yes' ); ?>>
-			<?php _e( 'Yes (Reccomended)', 'pmpro-avatax' ); ?>
+			<?php _e( 'Yes (Recommended)', 'pmpro-avatax' ); ?>
 		</option>
 		<option value="no" <?php selected( $retroactive_tax, 'no' ); ?>>
 			<?php _e( 'No', 'pmpro-avatax' ); ?>
@@ -264,7 +263,7 @@ function pmproava_option_vat_field() {
 			<?php _e( 'No', 'pmpro-avatax' ); ?>
 		</option>
 	</select>
-	<p class="description"><?php _e( 'If your country has a VAT tax, enable this feature to collect VAT numbers at checkout.', 'pmpro-avatax' );?></p>
+	<p class="description"><?php _e( 'If your country has a VAT system, enable this feature to collect VAT numbers at checkout.', 'pmpro-avatax' );?></p>
 	<?php
 }
 
@@ -274,6 +273,6 @@ function pmproava_option_vat_field() {
 function pmproava_option_site_prefix() {
 	$options = pmproava_get_options();
 	$site_prefix = $options['site_prefix'];
-	echo "<input id='pmproava_site_prefix' name='pmproava_options[site_prefix]' size='80' type='text' value='" . esc_attr( $site_prefix ) . "' />";
-	echo '<p class="description">' . esc_html__( 'Prefix for customer codes and invoice codes in Avatax.', 'pmpro-avatax' ) . '</p>';
+	echo "<input id='pmproava_site_prefix' name='pmproava_options[site_prefix]' class='regular-text' type='text' value='" . esc_attr( $site_prefix ) . "' />";
+	echo '<p class="description">' . esc_html__( 'Prefix for customer codes and invoice codes in AvaTax.', 'pmpro-avatax' ) . '</p>';
 }
