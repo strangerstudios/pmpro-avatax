@@ -97,6 +97,8 @@ class PMPro_AvaTax {
 			'commit' => false,
 			'transaction_date' => null,
 			'currency' => 'USD',
+			'item_code' => null,
+			'item_description' => null
 		);
 		$args = array_merge( $default_args, $args );
 		extract( $args );
@@ -158,11 +160,15 @@ class PMPro_AvaTax {
 
 		// Add product to transaction.
 		$transaction_builder->withLine(
-			$price,             // $amount
+			$price,              // $amount
 			1,                   // $quantity
-			null,                // $itemCode
+			$item_code,          // $itemCode
 			$product_category    // $taxCode
 		);
+
+		if ( ! empty( $item_description ) ) {
+			$transaction_builder->withLineDescription( $item_description );
+		}
 
 		// Set currency.
 		$transaction_builder->withCurrencyCode( $currency );
@@ -235,11 +241,13 @@ class PMPro_AvaTax {
 		$billing_address->postalCode = $order->billing->zip;
 		$billing_address->country    = $order->billing->country;
 
+		$membership_level            = pmpro_getLevel( $order->membership_id );
+
 		// Get args to send.
 		$args = array(
 			'price' => $order->total,
-			'product_category' => pmproava_get_product_category( $order->membership_id ),
-			'product_address_model' => pmproava_get_product_address_model( $order->membership_id ),
+			'product_category' => pmproava_get_product_category( $membership_level->id ),
+			'product_address_model' => pmproava_get_product_address_model( $membership_level->id ),
 			'billing_address' => $billing_address,
 			'document_type' => Avalara\DocumentType::C_SALESINVOICE,
 			'customer_code' => pmproava_get_customer_code( $order->user_id ),
@@ -248,6 +256,8 @@ class PMPro_AvaTax {
 			'commit' => in_array( $order->status, array( 'success', 'cancelled' ) ) ? true : false,
 			'transaction_date' => ! empty( $order->timestamp ) ? date( 'Y-m-d', $order->getTimestamp( true ) ): null,
 			'currency' => $pmpro_currency,
+			'item_code' => $membership_level->id,
+			'item_description' => $membership_level->name
 		);
 
 		// Update transaction.
