@@ -221,6 +221,12 @@ class PMPro_AvaTax {
 	public function update_transaction_from_order( $order ) {
 		global $pmpro_currency;
 
+		// If document recording is disabled, don't make any changes.
+		$pmproava_options = pmproava_get_options();
+		if ( $pmproava_options['record_documents'] === 'no' ) {
+			return false;
+		}
+
 		// Construct billing address.
 		$billing_address             = new stdClass();
 		$billing_address->line1      = $order->billing->street;
@@ -254,23 +260,31 @@ class PMPro_AvaTax {
 
 	public function void_transaction_for_order( $order, $document_type = Avalara\DocumentType::C_SALESINVOICE ) {
 		$pmproava_options = pmproava_get_options();
+
+		// If document recording is disabled, don't make any changes.
+		if ( $pmproava_options['record_documents'] === 'no' ) {
+			return false;
+		}
+
 		$transaction_code = pmproava_get_transaction_code( $order );
 		$void_transaction_model = new Avalara\VoidTransactionModel();
 		$void_transaction_model->code = Avalara\VoidReasonCode::C_DOCVOIDED;
 		$transaction_model = $this->AvaTaxClient->voidTransaction( $pmproava_options['company_code'], $transaction_code, $document_type, null, $void_transaction_model );
 		unset( $this->transaction_cache[ $transaction_code ] );
+		return true;
 	}
 
 	public function lock_transaction( $transaction_code, $document_type = Avalara\DocumentType::C_SALESINVOICE ) {
 		$pmproava_options = pmproava_get_options();
 
-		if ( $pmproava_options['environment'] !== 'sandbox' ) {
-			return;
+		if ( $pmproava_options['record_documents'] === 'no' || $pmproava_options['environment'] !== 'sandbox' ) {
+			return false;
 		}
 
 		$lock_transaction_model = new Avalara\LockTransactionModel();
 		$lock_transaction_model->isLocked = true;
 		$transaction_model = $this->AvaTaxClient->lockTransaction( $pmproava_options['company_code'], $transaction_code, $document_type, null, $lock_transaction_model );
+		return true;
 	}
 
 	/*

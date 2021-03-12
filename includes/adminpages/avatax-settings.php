@@ -56,6 +56,7 @@ function pmproava_admin_init() {
 	add_settings_field('pmproava_option_company_address_country', __('Country', 'pmpro-avatax'), 'pmproava_option_company_address_country', 'pmproava_options', 'pmproava_section_company');
 
 	add_settings_section('pmproava_section_settings', __('Settings', 'pmpro-avatax'), 'pmproava_section_settings', 'pmproava_options');
+	add_settings_field('pmproava_option_record_documents', __('Record Documents in AvaTax', 'pmpro-avatax'), 'pmproava_option_record_documents', 'pmproava_options', 'pmproava_section_settings');
 	add_settings_field('pmproava_option_retroactive_tax', __('Include Tax in Level Price', 'pmpro-avatax'), 'pmproava_option_retroactive_tax', 'pmproava_options', 'pmproava_section_settings');
 	add_settings_field('pmproava_option_vat_field', __('Show VAT Field at Checkout', 'pmpro-avatax'), 'pmproava_option_vat_field', 'pmproava_options', 'pmproava_section_settings');
 	add_settings_field('pmproava_option_site_prefix', __('Site Prefix', 'pmpro-avatax'), 'pmproava_option_site_prefix', 'pmproava_options', 'pmproava_section_settings');
@@ -229,6 +230,24 @@ function pmproava_section_settings() {
 		</div>
 		<?php
 	}
+}
+
+/**
+ * Show "Record Documnets in AvaTax" field.
+ */
+function pmproava_option_record_documents() {
+	$options = pmproava_get_options();
+	$record_documents = $options['record_documents'];
+	?>
+	<select id="pmproava_record_documents" name="pmproava_options[record_documents]">
+		<option value="yes" <?php selected( $record_documents, 'yes' ); ?>>
+			<?php _e( 'Yes, send transactions to AvaTax', 'pmpro-avatax' ); ?>
+		</option>
+		<option value="no" <?php selected( $record_documents, 'no' ); ?>>
+			<?php _e( 'No, do not send transactions to AvaTax', 'pmpro-avatax' ); ?>
+		</option>
+	</select>
+	<?php
 }
 
 /**

@@ -19,13 +19,14 @@ function pmproava_get_options() {
 		$default_address->country = '';
 
 		$default_options = array(
-			'account_number'  => '',
-			'license_key'     => '',
-			'environment'     => 'sandbox',
-			'company_code'    => '',
-			'company_address' => $default_address,
-			'retroactive_tax' => 'yes',
-			'site_prefix'     => 'PMPRO',
+			'account_number'   => '',
+			'license_key'      => '',
+			'environment'      => 'sandbox',
+			'company_code'     => '',
+			'company_address'  => $default_address,
+			'record_documents' => 'yes',
+			'retroactive_tax'  => 'yes',
+			'site_prefix'      => 'PMPRO',
 		);
 		$options = array_merge( $default_options, $set_options );
 	}
@@ -51,6 +52,11 @@ function pmproava_options_validate($input) {
 	}
 	if ( isset($input['company_address'] ) ) {
 		$newinput['company_address'] = (object)$input['company_address'];
+	}
+	if ( isset($input['record_documents']) && $input['record_documents'] === 'no' ) {
+		$newinput['record_documents'] = 'no';
+	} elseif ( isset( $input['record_documents'] ) ) {
+		$newinput['record_documents'] = 'yes';
 	}
 	if ( isset($input['retroactive_tax']) && $input['retroactive_tax'] === 'no' ) {
 		$newinput['retroactive_tax'] = 'no';
