@@ -9,6 +9,16 @@ function pmproava_after_order_settings( $order ) {
 	$pmproava_options     = pmproava_get_options();
 	$pmpro_avatax         = PMPro_AvaTax::get_instance();
 	$transaction_code     = pmproava_get_transaction_code( $order );
+	$transaction = $pmpro_avatax->get_transaction_for_order( $order );
+
+	if ( ! empty( $transaction ) && $transaction->locked || true ) {
+		?>
+		<div class="notice notice-warning">
+			<p><strong><?php esc_html_e( 'This transaction has been locked by AvaTax and cannot be modified.', 'pmpro-avatax' ); ?></strong></p>
+		</div>
+		<?php
+	}
+
 	?>
 	<tr>
 		<th>AvaTax</th>
@@ -30,7 +40,6 @@ function pmproava_after_order_settings( $order ) {
 					<td><?php echo $transaction_code; ?></td>
 				</tr>
 				<?php
-				$transaction = $pmpro_avatax->get_transaction_for_order( $order );
 				if ( ! empty( $transaction ) && empty( $transaction->error ) ) {
 					?>
 					<tr>
@@ -52,6 +61,10 @@ function pmproava_after_order_settings( $order ) {
 					<tr>
 						<th>Status</th>
 						<td><?php echo $transaction->status; ?></td>
+					</tr>
+					<tr>
+						<th>Locked</th>
+						<td><?php echo $transaction->locked ? 'Yes' : 'No'; ?></td>
 					</tr>
 					<tr>
 						<th>URL</th>
