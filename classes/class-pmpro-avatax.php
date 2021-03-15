@@ -327,16 +327,24 @@ class PMPro_AvaTax {
 			return null;
 		}
 
-		$response = $this->AvaTaxClient->resolveAddress(
-			isset( $address->line1 ) ? $address->line1 : '',
-			isset( $address->line2 ) ? $address->line2 : '',
-			isset( $address->line3 ) ? $address->line3 : '',
-			isset( $address->city ) ? $address->city : '',
-			isset( $address->region ) ? $address->region : '',
-			isset( $address->postalCode ) ? $address->postalCode : '',
-			isset( $address->country ) ? $address->country : '',
-			'Mixed' // Text case.
-		);
+		$address_cache_hash = wp_hash( serialize( $address ) );
+		$address_cache_key  = 'pmproava_address_cache_' . $address_cache_hash;
+		$response = get_transient( $address_cache_key );
+
+		if ( empty( $response ) ) {
+			// We do not have a cached value. Validate via API.
+			$response = $this->AvaTaxClient->resolveAddress(
+				isset( $address->line1 ) ? $address->line1 : '',
+				isset( $address->line2 ) ? $address->line2 : '',
+				isset( $address->line3 ) ? $address->line3 : '',
+				isset( $address->city ) ? $address->city : '',
+				isset( $address->region ) ? $address->region : '',
+				isset( $address->postalCode ) ? $address->postalCode : '',
+				isset( $address->country ) ? $address->country : '',
+				'Mixed' // Text case.
+			);
+			set_transient( $address_cache_key, $response, 60 * 60 * 24 );
+		}
 
 		if ( ! empty( $response->messages ) ) {
 			// Invalid address.
