@@ -11,7 +11,7 @@ function pmproava_after_order_settings( $order ) {
 	$transaction_code     = pmproava_get_transaction_code( $order );
 	$transaction = $pmpro_avatax->get_transaction_for_order( $order );
 
-	if ( ! empty( $transaction ) && $transaction->locked || true ) {
+	if ( ! empty( $transaction ) && $transaction->locked ) {
 		?>
 		<div class="notice notice-warning">
 			<p><strong><?php esc_html_e( 'This transaction has been locked by AvaTax and cannot be modified.', 'pmpro-avatax' ); ?></strong></p>
