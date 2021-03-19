@@ -143,13 +143,8 @@ function pmproava_updated_order( $order ) {
 	$pmpro_avatax            = PMPro_AvaTax::get_instance();
 	$transaction             = $pmpro_avatax->get_transaction_for_order( $order );
 
-	// If transaction does not already exist in AvaTax and order is voided in PMPro, return.
-	if ( empty( $transaction ) && in_array( $order->status, array( 'refunded', 'error' ) ) ) {
-		return;
-	}
-
-	// If transaction does not already exist in AvaTax and order is voided in PMPro, return.
-	if ( empty( $transaction ) && empty( intval( $order->total ) ) ) {
+	// Detect if order is in sync with AvaTax. If so, return.
+	if ( ! pmproava_order_should_sync_with_transaction( $order, $transaction ) ) {
 		return;
 	}
 
@@ -183,6 +178,103 @@ function pmproava_updated_order( $order ) {
 }
 add_filter( 'pmpro_added_order', 'pmproava_updated_order' );
 add_filter( 'pmpro_updated_order', 'pmproava_updated_order' );
+
+function pmproava_order_should_sync_with_transaction( $order, $transaction ) {
+	// If transaction does not already exist in AvaTax and order is voided in PMPro, return true.
+	if ( empty( $transaction ) && in_array( $order->status, array( 'refunded', 'error' ) ) ) {
+		return false;
+	}
+
+	// If transaction does not already exist in AvaTax and order is free, return true.
+	if ( empty( $transaction ) && empty( intval( $order->total ) ) ) {
+		return false;
+	}
+
+	// If transaction is locked, don't try to update.
+	if ( ! empty( $transaction ) && $transaction->locked ) {
+		return false;
+	}
+
+	// If we need a transaction but it does not yet exist, create it.
+	if ( empty( $transaction ) ) {
+		return true;
+	}
+
+	// Gather information for comparison...
+	$line_item       = $transaction->lines[0];
+
+	$avatax_destination_address_id = $transaction->destinationAddressId;
+	$avatax_address = null;
+	foreach ( $transaction->addresses as $address ) {
+		if ( $address->id == $avatax_destination_address_id ) {
+			$avatax_address = $address;
+			break;
+		}
+	}
+	if ( empty( $avatax_address ) ) {
+		// We should never get here, but if we do, update.
+		return true;
+	}
+
+	switch( pmproava_get_product_address_model( $order->membership_id ) ) {
+		case 'singleLocation':
+			$pmproava_options = pmproava_get_options();
+			$pmpro_address    = $pmproava_options['company_address'];
+			break;
+		case 'shipToFrom':
+			$pmpro_address             = new stdClass();
+			$pmpro_address->line1      = $order->billing->street;
+			$pmpro_address->city       = $order->billing->city;
+			$pmpro_address->region     = $order->billing->state;
+			$pmpro_address->postalCode = $order->billing->zip;
+			$pmpro_address->country    = $order->billing->country;
+			break;
+		default:
+			$pmpro_address = null;
+	}
+	$pmpro_avatax            = PMPro_AvaTax::get_instance();
+	$pmpro_address_validated = $pmpro_avatax->validate_address( $pmpro_address );
+	if ( empty( $pmpro_address_validated ) ) {
+		// Don't try to update. We had an error with  address validation.
+		pmproava_save_order_error( $order );
+		return false;
+	}
+
+	// Is the order synced with the transaction?
+	$synced = (
+		// User
+		$transaction->customerCode == pmproava_get_customer_code( $order->user_id ) &&
+
+		// Membership Level
+		$line_item->itemCode == $order->membership_id &&
+		$line_item->taxCode == pmproava_get_product_category( $order->membership_id ) &&
+
+		// Address
+		$avatax_address->line1      == $pmpro_address_validated->line1 &&
+		$avatax_address->line2      == $pmpro_address_validated->line2 &&
+		$avatax_address->line3      == $pmpro_address_validated->line3 &&
+		$avatax_address->city       == $pmpro_address_validated->city &&
+		$avatax_address->region     == $pmpro_address_validated->region &&
+		$avatax_address->country    == $pmpro_address_validated->country &&
+		$avatax_address->postalCode == $pmpro_address_validated->postalCode &&
+
+		// Totals
+		$transaction->totalAmount + $transaction->totalTax == $order->total &&
+		$transaction->totalTax == $order->tax &&
+		$transaction->totalAmount == $order->subtotal &&
+
+		// Status
+		( $transaction->status != 'Committed' || in_array( $order->status, array( 'success', 'cancelled' ) ) ) &&
+		( $transaction->status != 'Saved' || in_array( $order->status, array( 'pending', 'token', 'review' ) ) ) &&
+		( $transaction->status != 'Cancelled' || in_array( $order->status, array( 'error', 'refunded' ) ) ) &&
+
+		// Date
+		// This won't work immediately when the date is newly changed on the edit order page.
+		// On that admin page, timestamp is updated separately after order itself.
+		$transaction->date == date( 'Y-m-d', strtotime( $order->datetime ) )
+	);
+	return ! $synced;
+}
 
 function pmproava_save_order_error( $order ) {
 	global $pmproava_error;
