@@ -185,7 +185,7 @@ function pmproava_order_should_sync_with_transaction( $order, $transaction ) {
 		return false;
 	}
 
-	// If transaction does not already exist in AvaTax and order is free, return true.
+	// If transaction does not already exist in AvaTax and order is free, return false.
 	if ( empty( $transaction ) && empty( intval( $order->total ) ) ) {
 		return false;
 	}
@@ -240,40 +240,44 @@ function pmproava_order_should_sync_with_transaction( $order, $transaction ) {
 		return false;
 	}
 
-	// Is the order synced with the transaction?
-	$synced = (
-		// User
-		$transaction->customerCode == pmproava_get_customer_code( $order->user_id ) &&
+	$r = false;
+	if ( $transaction->customerCode != pmproava_get_customer_code( $order->user_id ) ) { // User
+		$r = true;
+	} elseif ( $line_item->itemCode != $order->membership_id ) { // Membership Level
+		$r = true;
+	} elseif ( $line_item->taxCode != pmproava_get_product_category( $order->membership_id ) ) {
+		$r = true;
+	} elseif ( $avatax_address->line1 != $pmpro_address_validated->line1 ) { // Address
+		$r = true;
+	} elseif ( $avatax_address->line2 != $pmpro_address_validated->line2 ) {
+		$r = true;
+	} elseif ( $avatax_address->line3 != $pmpro_address_validated->line3 ) {
+		$r = true;
+	} elseif ( $avatax_address->city != $pmpro_address_validated->city ) {
+		$r = true;
+	} elseif ( $avatax_address->region != $pmpro_address_validated->region ) {
+		$r = true;
+	} elseif ( $avatax_address->country != $pmpro_address_validated->country ) {
+		$r = true;
+	} elseif ( $avatax_address->postalCode != $pmpro_address_validated->postalCode ) {
+		$r = true;
+	} elseif ( $transaction->totalAmount + $transaction->totalTax != $order->total ) { // Totals
+		$r = true;
+	} elseif ( $transaction->totalTax != $order->tax ) {
+		$r = true;
+	} elseif ( $transaction->totalAmount != $order->subtotal ) {
+		$r = true;
+	} elseif ( $transaction->status == 'Committed' && ! in_array( $order->status, array( 'success', 'cancelled' ) ) ) { // Status
+		$r = true;
+	} elseif ( $transaction->status == 'Saved' && ! in_array( $order->status, array( 'pending', 'token', 'review' ) ) ) {
+		$r = true;
+	} elseif ( $transaction->status == 'Cancelled' && ! in_array( $order->status, array( 'error', 'refunded' ) ) ) {
+		$r = true;
+	} elseif ( $transaction->date != date( 'Y-m-d', strtotime( $order->datetime ) ) ) { // Date
+		$r = true;
+	}
 
-		// Membership Level
-		$line_item->itemCode == $order->membership_id &&
-		$line_item->taxCode == pmproava_get_product_category( $order->membership_id ) &&
-
-		// Address
-		$avatax_address->line1      == $pmpro_address_validated->line1 &&
-		$avatax_address->line2      == $pmpro_address_validated->line2 &&
-		$avatax_address->line3      == $pmpro_address_validated->line3 &&
-		$avatax_address->city       == $pmpro_address_validated->city &&
-		$avatax_address->region     == $pmpro_address_validated->region &&
-		$avatax_address->country    == $pmpro_address_validated->country &&
-		$avatax_address->postalCode == $pmpro_address_validated->postalCode &&
-
-		// Totals
-		$transaction->totalAmount + $transaction->totalTax == $order->total &&
-		$transaction->totalTax == $order->tax &&
-		$transaction->totalAmount == $order->subtotal &&
-
-		// Status
-		( $transaction->status != 'Committed' || in_array( $order->status, array( 'success', 'cancelled' ) ) ) &&
-		( $transaction->status != 'Saved' || in_array( $order->status, array( 'pending', 'token', 'review' ) ) ) &&
-		( $transaction->status != 'Cancelled' || in_array( $order->status, array( 'error', 'refunded' ) ) ) &&
-
-		// Date
-		// This won't work immediately when the date is newly changed on the edit order page.
-		// On that admin page, timestamp is updated separately after order itself.
-		$transaction->date == date( 'Y-m-d', strtotime( $order->datetime ) )
-	);
-	return ! $synced;
+	return $r;
 }
 
 function pmproava_save_order_error( $order ) {
