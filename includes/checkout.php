@@ -90,13 +90,8 @@ function pmproava_tax_filter( $tax, $values, $order ) {
 		$billing_address->country = isset( $values['billing_country'] ) ? $values['billing_country'] : '';
 	}
 
-	$cache_key = wp_hash( json_encode( array( $level_id, $product_category, $product_address_model, $billing_address ) ) );
-	static $cache;
-	if ( ! isset( $cache[ $cache_key ] ) ) {
-		$pmpro_avatax        = PMPro_AvaTax::get_instance();
-		$cache[ $cache_key ] = $pmpro_avatax->calculate_tax( $values['price'], $product_category, $product_address_model, $billing_address ) ?: 0;
-	}
-	return $cache[ $cache_key ];
+	$pmpro_avatax = PMPro_AvaTax::get_instance();
+	return $pmpro_avatax->calculate_tax( $values['price'], $product_category, $product_address_model, $billing_address ) ?: 0;
 }
 add_filter( 'pmpro_tax', 'pmproava_tax_filter', 100, 3 ); // AvaTax should have the final say in taxes.
 

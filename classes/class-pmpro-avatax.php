@@ -77,14 +77,6 @@ class PMPro_AvaTax {
 			return null;
 		}
 
-		// Make sure we have a valid company address.
-		$pmproava_options = pmproava_get_options();
-		$validated_company_address = $this->validate_address( $pmproava_options['company_address'] );
-		if ( empty( $validated_company_address ) ) {
-			// Invalid company address. Error would have been thrown in that function.
-			return null;
-		}
-
 		$default_args = array(
 			'price' => 0,
 			'product_category' => PMPROAVA_GENERAL_MERCHANDISE,
@@ -95,13 +87,43 @@ class PMPro_AvaTax {
 			'transaction_code' => '0',
 			'retroactive_tax' => true,
 			'commit' => false,
-			'transaction_date' => null,
+			'transaction_date' => date('Y-m-d'),
 			'currency' => 'USD',
 			'item_code' => null,
 			'item_description' => null
 		);
 		$args = array_merge( $default_args, $args );
 		extract( $args );
+
+		// Make sure we have a valid company address.
+		$pmproava_options = pmproava_get_options();
+		$validated_company_address = $this->validate_address( $pmproava_options['company_address'] );
+		if ( empty( $validated_company_address ) ) {
+			// Invalid company address. Error would have been thrown in that function.
+			return null;
+		}
+		// Validate billing address.
+		$validated_billing_address = $this->validate_address( $billing_address );
+
+		// If looking for tax estimate, check cache.
+		if ( $document_type == Avalara\DocumentType::C_SALESORDER ) {
+			$estimate_cache_key_array      = array(
+				'price'                 => $price,
+				'product_category'      => $product_category,
+				'product_address_model' => $product_address_model,
+				'billing_address'       => $validated_billing_address,
+				'company_address'       => $validated_company_address,
+				'retroactive_tax'       => $retroactive_tax,
+				'transaction_date'      => $transaction_date,
+				'currency'              => $currency,
+			);
+			$estimate_cache_key_hash = wp_hash( serialize( $estimate_cache_key_array ) );
+			$estimate_cache_key      = 'pmproava_estimate_cache_' . $estimate_cache_key_hash;
+			$estimate_cached_value   = get_transient( $estimate_cache_key );
+			if ( false !== $estimate_cached_value ) {
+				return $estimate_cached_value;
+			}
+		}
 
 		// Create a transaction in AvaTax.
 		$transaction_builder = new Avalara\TransactionBuilder(
@@ -131,9 +153,12 @@ class PMPro_AvaTax {
 				);
 				break;
 			case 'shipToFrom':
-				$validated_billing_address = $this->validate_address( $billing_address );
 				if ( empty( $validated_billing_address ) ) {
 					// Invalid address. Error would have been thrown in that function.
+					if ( isset( $estimate_cache_key ) ) {
+						// Cache return if estimate.
+						set_transient( $estimate_cache_key, null, 60 * 60 * 24 );
+					}
 					return null;
 				}
 				$transaction_builder->withAddress(
@@ -187,9 +212,21 @@ class PMPro_AvaTax {
 		if ( ! empty( $transaction_mode->errors ) ) {
 			global $pmproava_error;
 			$pmproava_error = 'Error while creating transaction_mode: ' . $transaction_mode->errors->{''}[0];
+			if ( isset( $estimate_cache_key ) ) {
+				// Cache return if estimate.
+				set_transient( $estimate_cache_key, null, 60 * 60 * 24 );
+			}
 			return null;
 		}
+
+		// Break transaction cache.
 		unset( $this->transaction_cache[ $transaction_code ] );
+
+		// Create estimate cache.
+		if ( isset( $estimate_cache_key ) ) {
+			set_transient( $estimate_cache_key, $transaction_mode, 60 * 60 * 24 );
+		}
+
 		return $transaction_mode;
 	}
 
