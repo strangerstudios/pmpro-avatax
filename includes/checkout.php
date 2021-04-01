@@ -22,7 +22,7 @@ function pmproava_checkout_boxes() {
 			<?php if ( $vat_field ) { ?>
 				<div id="pmproava_have_vat_number" class="pmpro_checkout-field pmpro_checkout-field-checkbox">
 					<input id="pmproava_show_vat" type="checkbox" name="pmproava_show_vat" value="1" <?php checked($pmproava_show_vat, 1);?>>
-					<label for="pmproava_show_vat" class="pmpro_clickable"><?php printf( __( 'Check if you have a VAT Number for %s.', 'pmpro-avatax'), $options['company_address']->country );?></label>
+					<label for="pmproava_show_vat" class="pmpro_clickable"><?php esc_html_e( 'Check if you have a VAT Number.', 'pmpro-avatax');?></label>
 				</div> <!-- end vat_have_number -->
 				<div id="pmproava_vat_number_div" class="pmpro_checkout-field">
 					<label for="pmproava_vat_number"><?php _e('Vat Number', 'pmpro-avatax');?></label>
@@ -78,3 +78,15 @@ function pmproava_registration_checks( $okay ) {
 	return $okay;
 }
 add_filter( 'pmpro_registration_checks', 'pmproava_registration_checks', 10, 1 );
+
+function pmproava_enable_saving_vat_at_checkout() {
+	add_action( 'pmpro_added_order', 'pmroava_save_vat_at_checkout', 9, 1 );
+	add_action( 'pmpro_updated_order', 'pmroava_save_vat_at_checkout', 9, 1 );
+}
+add_action( 'pmpro_checkout_before_change_membership_level', 'pmproava_enable_saving_vat_at_checkout' );
+
+function pmroava_save_vat_at_checkout( $order ) {
+	if ( ! empty( $_REQUEST['pmproava_show_vat'] ) && ! empty( $_REQUEST['pmproava_vat_number'] ) ) {
+		update_pmpro_membership_order_meta( $order->id, 'pmproava_vat_number', sanitize_text_field( $_REQUEST['pmproava_vat_number'] ) );
+	}
+}

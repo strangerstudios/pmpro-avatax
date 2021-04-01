@@ -170,8 +170,8 @@ function pmproava_updated_order( $order ) {
 	// Clear AvaTax errors for order.
 	pmproava_save_order_error( $order );
 }
-add_filter( 'pmpro_added_order', 'pmproava_updated_order' );
-add_filter( 'pmpro_updated_order', 'pmproava_updated_order' );
+add_action( 'pmpro_added_order', 'pmproava_updated_order' );
+add_action( 'pmpro_updated_order', 'pmproava_updated_order' );
 
 function pmproava_order_should_sync_with_transaction( $order, $transaction ) {
 	// If transaction does not already exist in AvaTax and order is voided in PMPro, return true.
@@ -234,8 +234,12 @@ function pmproava_order_should_sync_with_transaction( $order, $transaction ) {
 		return false;
 	}
 
+	$vat_number = get_pmpro_membership_order_meta( $order->id, 'pmproava_vat_number', true );
+
 	$r = false;
 	if ( $transaction->customerCode != pmproava_get_customer_code( $order->user_id ) ) { // User
+		$r = true;
+	} elseif ( ( empty( $transaction->businessIdentificationNo ) ? null : $transaction->businessIdentificationNo ) != ( empty( $vat_number ) ? null : $vat_number ) ) { // VAT
 		$r = true;
 	} elseif ( $line_item->itemCode != $order->membership_id ) { // Membership Level
 		$r = true;
