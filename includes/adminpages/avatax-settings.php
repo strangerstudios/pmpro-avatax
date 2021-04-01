@@ -57,7 +57,6 @@ function pmproava_admin_init() {
 
 	add_settings_section('pmproava_section_settings', __('Settings', 'pmpro-avatax'), 'pmproava_section_settings', 'pmproava_options');
 	add_settings_field('pmproava_option_record_documents', __('Record Documents in AvaTax', 'pmpro-avatax'), 'pmproava_option_record_documents', 'pmproava_options', 'pmproava_section_settings');
-	add_settings_field('pmproava_option_retroactive_tax', __('Include Tax in Level Price', 'pmpro-avatax'), 'pmproava_option_retroactive_tax', 'pmproava_options', 'pmproava_section_settings');
 	add_settings_field('pmproava_option_vat_field', __('Show VAT Field at Checkout', 'pmpro-avatax'), 'pmproava_option_vat_field', 'pmproava_options', 'pmproava_section_settings');
 	add_settings_field('pmproava_option_site_prefix', __('Site Prefix', 'pmpro-avatax'), 'pmproava_option_site_prefix', 'pmproava_options', 'pmproava_section_settings');
 }
@@ -245,24 +244,6 @@ function pmproava_option_record_documents() {
 		</option>
 		<option value="no" <?php selected( $record_documents, 'no' ); ?>>
 			<?php _e( 'No, do not send transactions to AvaTax', 'pmpro-avatax' ); ?>
-		</option>
-	</select>
-	<?php
-}
-
-/**
- * Show "Include Tax in Level Price" field.
- */
-function pmproava_option_retroactive_tax() {
-	$options = pmproava_get_options();
-	$retroactive_tax = $options['retroactive_tax'];
-	?>
-	<select id="pmproava_retroactive_tax" name="pmproava_options[retroactive_tax]">
-		<option value="yes" <?php selected( $retroactive_tax, 'yes' ); ?>>
-			<?php _e( 'Yes (Reccomended)', 'pmpro-avatax' ); ?>
-		</option>
-		<option value="no" <?php selected( $retroactive_tax, 'no' ); ?>>
-			<?php _e( 'No', 'pmpro-avatax' ); ?>
 		</option>
 	</select>
 	<?php

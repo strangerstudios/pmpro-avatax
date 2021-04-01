@@ -25,7 +25,6 @@ function pmproava_get_options() {
 			'company_code'     => '',
 			'company_address'  => $default_address,
 			'record_documents' => 'yes',
-			'retroactive_tax'  => 'yes',
 			'site_prefix'      => 'PMPRO',
 		);
 		$options = array_merge( $default_options, $set_options );
@@ -57,11 +56,6 @@ function pmproava_options_validate($input) {
 		$newinput['record_documents'] = 'no';
 	} elseif ( isset( $input['record_documents'] ) ) {
 		$newinput['record_documents'] = 'yes';
-	}
-	if ( isset($input['retroactive_tax']) && $input['retroactive_tax'] === 'no' ) {
-		$newinput['retroactive_tax'] = 'no';
-	} elseif ( isset( $input['retroactive_tax'] ) ) {
-		$newinput['retroactive_tax'] = 'yes';
 	}
 	if ( isset($input['vat_field']) && $input['vat_field'] === 'no' ) {
 		$newinput['vat_field'] = 'no';
