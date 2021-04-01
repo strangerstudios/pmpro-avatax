@@ -90,7 +90,8 @@ class PMPro_AvaTax {
 			'transaction_date' => date('Y-m-d'),
 			'currency' => 'USD',
 			'item_code' => null,
-			'item_description' => null
+			'item_description' => null,
+			'vat_number' => null
 		);
 		$args = array_merge( $default_args, $args );
 		extract( $args );
@@ -198,6 +199,10 @@ class PMPro_AvaTax {
 		// Set currency.
 		$transaction_builder->withCurrencyCode( $currency );
 
+		if ( ! empty( $vat_number ) ) {
+			$transaction_builder->withBusinessIdentificationNo( $vat_number );
+		}
+
 		// Make tax retroactive if needed.
 		if ( $retroactive_tax ) {
 			$transaction_builder->withLineTaxIncluded();
@@ -280,6 +285,8 @@ class PMPro_AvaTax {
 
 		$membership_level            = pmpro_getLevel( $order->membership_id );
 
+		$vat_number                  = get_pmpro_membership_order_meta( $order->id, 'pmproava_vat_number', true );
+
 		// Get args to send.
 		$args = array(
 			'price' => $order->total,
@@ -294,7 +301,8 @@ class PMPro_AvaTax {
 			'transaction_date' => ! empty( $order->timestamp ) ? date( 'Y-m-d', $order->getTimestamp( true ) ): null,
 			'currency' => $pmpro_currency,
 			'item_code' => $membership_level->id,
-			'item_description' => $membership_level->name
+			'item_description' => $membership_level->name,
+			'vat_number' => ! empty( $vat_number ) ? $vat_number : null
 		);
 
 		// Update transaction.

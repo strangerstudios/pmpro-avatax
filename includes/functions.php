@@ -176,8 +176,8 @@ function pmproava_updated_order( $order ) {
 	// Clear AvaTax errors for order.
 	pmproava_save_order_error( $order );
 }
-add_filter( 'pmpro_added_order', 'pmproava_updated_order' );
-add_filter( 'pmpro_updated_order', 'pmproava_updated_order' );
+add_action( 'pmpro_added_order', 'pmproava_updated_order' );
+add_action( 'pmpro_updated_order', 'pmproava_updated_order' );
 
 function pmproava_order_should_sync_with_transaction( $order, $transaction ) {
 	// If transaction does not already exist in AvaTax and order is voided in PMPro, return true.
