@@ -295,3 +295,10 @@ function pmproava_save_order_error( $order ) {
 function pmproava_get_order_error( $order ) {
 	return get_pmpro_membership_order_meta( $order->id, 'pmproava_error', true ) ?: '';
 }
+
+function pmproava_order_deleted( $order_id, $order ) {
+	$pmpro_avatax = PMPro_AvaTax::get_instance();
+	$pmpro_avatax->void_transaction_for_order( $order );
+	delete_pmpro_membership_order_meta( $order_id, 'pmproava_transaction_code' );
+}
+add_action( 'pmpro_delete_order', 'pmproava_order_deleted', 10, 2 );
