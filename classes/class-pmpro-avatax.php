@@ -84,6 +84,7 @@ class PMPro_AvaTax {
 			'billing_address' => null,
 			'document_type' => Avalara\DocumentType::C_SALESORDER,
 			'customer_code' => '0',
+			'entity_use_code' => '',
 			'transaction_code' => '0',
 			'commit' => false,
 			'transaction_date' => date('Y-m-d'),
@@ -181,6 +182,10 @@ class PMPro_AvaTax {
 			$transaction_builder->withBusinessIdentificationNo( $vat_number );
 		}
 
+		if ( ! empty( $entity_use_code ) ) {
+			$transaction_builder->withEntityUseCode( $entity_use_code );
+		}
+
 		// Commit transaction if needed.
 		if ( $commit ) {
 			$transaction_builder->withCommit();
@@ -220,6 +225,9 @@ class PMPro_AvaTax {
 
 		$vat_number                  = get_pmpro_membership_order_meta( $order->id, 'pmproava_vat_number', true );
 
+		$exemption_reason            = get_user_meta( $order->user_id, 'pmproava_user_exemption_reason', true );
+		$entity_use_code             = empty( $exemption_reason ) ? '' : $exemption_reason;
+
 		// Get args to send.
 		$args = array(
 			'price' => $order->total,
@@ -228,6 +236,7 @@ class PMPro_AvaTax {
 			'billing_address' => $billing_address,
 			'document_type' => Avalara\DocumentType::C_SALESINVOICE,
 			'customer_code' => pmproava_get_customer_code( $order->user_id ),
+			'entity_use_code' => $entity_use_code,
 			'transaction_code' => pmproava_get_transaction_code( $order ),
 			'commit' => in_array( $order->status, array( 'success', 'cancelled' ) ) ? true : false,
 			'transaction_date' => ! empty( $order->timestamp ) ? date( 'Y-m-d', $order->getTimestamp( true ) ): null,
@@ -334,6 +343,11 @@ class PMPro_AvaTax {
 			return null;
 		}
 		return $response->validatedAddresses[0];
+	}
+
+	public function get_entity_use_codes() {
+		$entity_use_codes = $this->AvaTaxClient->listEntityUseCodes();
+		return $entity_use_codes->value;
 	}
 
 	

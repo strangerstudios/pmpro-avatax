@@ -21,6 +21,7 @@ require_once PMPROAVA_DIR . '/includes/functions.php';                  // Misce
 require_once PMPROAVA_DIR . '/includes/adminpages/avatax-settings.php'; // AvaTax settings page.
 require_once PMPROAVA_DIR . '/includes/adminpages/edit-level.php';      // AvaTax fields on edit level page.
 require_once PMPROAVA_DIR . '/includes/adminpages/edit-order.php';      // AvaTax fields on edit level page.
+require_once PMPROAVA_DIR . '/includes/adminpages/profile.php';      // AvaTax fields on edit level page.
 
 /**
  * Load the languages folder for translations.
@@ -29,6 +30,11 @@ function pmproava_load_textdomain() {
 	load_plugin_textdomain( 'pmpro-avatax', false, basename( dirname( __FILE__ ) ) . '/languages' );
 }
 add_action( 'plugins_loaded', 'pmproava_load_textdomain' );
+
+function pmproava_admin_scripts( $hook ) {
+	wp_enqueue_script( 'pmproava_admin', plugins_url( 'js/pmproava-admin.js', __FILE__ ), array( 'jquery' ), null, true );
+}
+add_action( 'admin_enqueue_scripts', 'pmproava_admin_scripts' );
 
 /**
  * Add links to the plugin action links

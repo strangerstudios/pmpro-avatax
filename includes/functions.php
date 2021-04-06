@@ -236,8 +236,13 @@ function pmproava_order_should_sync_with_transaction( $order, $transaction ) {
 
 	$vat_number = get_pmpro_membership_order_meta( $order->id, 'pmproava_vat_number', true );
 
+	$exemption_reason            = get_user_meta( $order->user_id, 'pmproava_user_exemption_reason', true );
+	$entity_use_code             = empty( $exemption_reason ) ? null : $exemption_reason;
+
 	$r = false;
 	if ( $transaction->customerCode != pmproava_get_customer_code( $order->user_id ) ) { // User
+		$r = true;
+	} elseif ( ( empty( $transaction->entityUseCode ) ? null : $transaction->entityUseCode ) != $entity_use_code ) {
 		$r = true;
 	} elseif ( ( empty( $transaction->businessIdentificationNo ) ? null : $transaction->businessIdentificationNo ) != ( empty( $vat_number ) ? null : $vat_number ) ) { // VAT
 		$r = true;
