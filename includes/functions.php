@@ -108,6 +108,19 @@ function pmproava_get_customer_code( $user_id ) {
 }
 
 /**
+ * Check whether the PMPro AvaTax environment is the same as
+ * an order's gateway environment.
+ *
+ * @param MemberOrder $order to compare gateway environemnt for.
+ * @return bool
+ */
+function pmproava_environment_same_as_order_environment( $order ) {
+	$pmproava_options = pmproava_get_options();
+	$pmproava_environment = $pmproava_options['environment'] === 'sandbox' ? 'sandbox' : 'live' ;
+	return $pmproava_environment === $order->gateway_environment;
+}
+
+/**
  * Get the Avalara transaction code for a particular order.
  *
  * @param MemberOrder $order to get transaction code for.
@@ -127,10 +140,7 @@ function pmproava_updated_order( $order ) {
 	global $wpdb;
 
 	// Check if gateway environments match for order and Avalara creds. If not, return.
-	$pmproava_options = pmproava_get_options();
-	$pmproava_environment = $pmproava_options['environment'] === 'sandbox' ? 'sandbox' : 'live' ;
-	$gateway_environment = pmpro_getOption( 'gateway_environment' );
-	if ( $pmproava_environment !== $gateway_environment ) {
+	if ( ! pmproava_environment_same_as_order_environment( $order ) ) {
 		return;
 	}
 
@@ -174,7 +184,12 @@ add_action( 'pmpro_added_order', 'pmproava_updated_order' );
 add_action( 'pmpro_updated_order', 'pmproava_updated_order' );
 
 function pmproava_order_should_sync_with_transaction( $order, $transaction ) {
-	// If transaction does not already exist in AvaTax and order is voided in PMPro, return true.
+	// Check if correctt environment.
+	if ( ! pmproava_environment_same_as_order_environment( $order ) ) {
+		return false;
+	}
+
+	// If transaction does not already exist in AvaTax and order is voided in PMPro, return false.
 	if ( empty( $transaction ) && in_array( $order->status, array( 'refunded', 'error' ) ) ) {
 		return false;
 	}

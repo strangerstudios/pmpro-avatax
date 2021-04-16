@@ -209,7 +209,7 @@ class PMPro_AvaTax {
 
 		// If document recording is disabled, don't make any changes.
 		$pmproava_options = pmproava_get_options();
-		if ( $pmproava_options['record_documents'] === 'no' ) {
+		if ( ! pmproava_environment_same_as_order_environment( $order ) || $pmproava_options['record_documents'] === 'no' ) {
 			return false;
 		}
 
@@ -258,7 +258,7 @@ class PMPro_AvaTax {
 		$pmproava_options = pmproava_get_options();
 
 		// If document recording is disabled, don't make any changes.
-		if ( $pmproava_options['record_documents'] === 'no' ) {
+		if ( ! pmproava_environment_same_as_order_environment( $order ) || $pmproava_options['record_documents'] === 'no' ) {
 			return false;
 		}
 
@@ -273,7 +273,7 @@ class PMPro_AvaTax {
 	public function lock_transaction( $transaction_code, $document_type = Avalara\DocumentType::C_SALESINVOICE ) {
 		$pmproava_options = pmproava_get_options();
 
-		if ( $pmproava_options['record_documents'] === 'no' || $pmproava_options['environment'] !== 'sandbox' ) {
+		if ( ! pmproava_environment_same_as_order_environment( $order ) || $pmproava_options['record_documents'] === 'no' || $pmproava_options['environment'] !== 'sandbox' ) {
 			return false;
 		}
 
