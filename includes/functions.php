@@ -315,5 +315,26 @@ function pmproava_order_deleted( $order_id, $order ) {
 	$pmpro_avatax = PMPro_AvaTax::get_instance();
 	$pmpro_avatax->void_transaction_for_order( $order );
 	delete_pmpro_membership_order_meta( $order_id, 'pmproava_transaction_code' );
+	delete_pmpro_membership_order_meta( $order->id, 'pmproava_vat_number' );
 }
 add_action( 'pmpro_delete_order', 'pmproava_order_deleted', 10, 2 );
+
+/**
+ * Add Avalara data to CSV order export.
+ */
+function pmproava_pmpro_orders_csv_extra_columns( $columns )
+{
+	$columns['avatax_transaction_code'] = 'pmproava_transaction_code_for_orders_csv';
+	$columns['avatax_vat_number'] = 'pmproava_vat_number_for_orders_csv';
+	return $columns;
+}
+add_filter('pmpro_orders_csv_extra_columns', 'pmproava_pmpro_orders_csv_extra_columns');
+
+function pmproava_transaction_code_for_orders_csv( $order ) {
+	return pmproava_get_transaction_code( $order );
+}
+
+function pmproava_vat_number_for_orders_csv( $order ) {
+	$vat_number = get_pmpro_membership_order_meta( $order->id, 'pmproava_vat_number', true );
+	return empty( $vat_number ) ? '' : $vat_number;
+}
