@@ -251,6 +251,7 @@ class PMPro_AvaTax {
 			pmproava_save_order_error( $order );
 			return false;
 		}
+		update_pmpro_membership_order_meta( $order->id, 'pmproava_last_sync', date( 'Y-m-d H:i:s' ) );
 		return true;
 	}
 
@@ -267,6 +268,7 @@ class PMPro_AvaTax {
 		$void_transaction_model->code = Avalara\VoidReasonCode::C_DOCVOIDED;
 		$transaction_model = $this->AvaTaxClient->voidTransaction( $pmproava_options['company_code'], $transaction_code, $document_type, null, $void_transaction_model );
 		unset( $this->transaction_cache[ $transaction_code ] );
+		update_pmpro_membership_order_meta( $order->id, 'pmproava_last_sync', date( 'Y-m-d H:i:s' ) );
 		return true;
 	}
 
