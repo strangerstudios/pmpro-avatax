@@ -58,7 +58,7 @@ function pmproava_registration_checks( $okay ) {
 	}
 
 	global $pmpro_level;
-	if ( pmproava_get_product_address_model( $pmpro_level->id ) !== 'singleLocation' ) {
+	if ( ! pmpro_isLevelFree( $pmpro_level ) && pmproava_get_product_address_model( $pmpro_level->id ) !== 'singleLocation' ) {
 		// User needs to have a valid billing address.
 		$billing_address = new stdClass();
 		$billing_address->line1 = isset( $_REQUEST['baddress1'] ) ? $_REQUEST['baddress1'] : '';
