@@ -31,21 +31,26 @@ function pmproava_after_order_settings( $order ) {
 					<td><?php esc_html_e( $transaction_code ); ?></td>
 				</tr>
 				<?php 
-					$error = pmproava_get_order_error( $order );
-					if ( ! empty( $error ) ) {
-						?>
-						<tr>
-							<th><?php esc_html_e( 'Error', 'pmpro-avatax' ); ?></th>
-							<td><?php esc_html_e( $error ); ?></td>
-						</tr>
-						<?php
-					}
-				?>
-				<tr>
-					<th><?php esc_html_e( 'Last Updated', 'pmpro-avatax' ); ?></th>
-					<td><?php esc_html_e( $last_sync ); ?></td>
-				</tr>
-				<?php
+				$error = pmproava_get_order_error( $order );
+				if ( empty( $error ) ) {
+					?>
+					<tr>
+						<th><?php esc_html_e( 'Last Updated', 'pmpro-avatax' ); ?></th>
+						<td><?php esc_html_e( $last_sync ); ?></td>
+					</tr>
+					<?php
+				} else {
+					?>
+					<tr>
+						<th><?php esc_html_e( 'Error', 'pmpro-avatax' ); ?></th>
+						<td><?php esc_html_e( $error ); ?></td>
+					</tr>
+					<tr>
+						<th><?php esc_html_e( 'Last Successful Update', 'pmpro-avatax' ); ?></th>
+						<td><?php esc_html_e( $last_sync ); ?></td>
+					</tr>
+					<?php
+				}
 				if ( ! empty( $transaction ) && empty( $transaction->error ) ) {
 					?>
 					<tr>
