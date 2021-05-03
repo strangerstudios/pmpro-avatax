@@ -338,3 +338,35 @@ function pmproava_vat_number_for_orders_csv( $order ) {
 	$vat_number = get_pmpro_membership_order_meta( $order->id, 'pmproava_vat_number', true );
 	return empty( $vat_number ) ? '' : $vat_number;
 }
+
+function pmproava_get_price_parts( $price_parts, $invoice ) {
+	if ( ! empty( $price_parts['tax'] ) ) {
+		$pmpro_avatax            = PMPro_AvaTax::get_instance();
+		$transaction             = $pmpro_avatax->get_transaction_for_order( $invoice );
+		if ( count( $transaction->summary ) === 1 ) {
+			$price_parts['tax']['label'] = esc_html( $transaction->summary[0]->taxName );
+		} else {
+			$price_part_index_tax = array_search( 'tax', array_keys( $price_parts ) ) + 1;
+			$tax_breakdown = array();
+			foreach ( $transaction->summary as $tax_element ) {
+				$tax_breakdown[ 'avatax_breakdown_' . $tax_element->taxName ] = array(
+					'label' => esc_html( $tax_element->taxName ),
+					'value' => pmpro_escape_price( pmpro_formatPrice( $tax_element->taxCalculated ) ),
+				);
+			}
+			$price_parts = array_slice( $price_parts, 0, $price_part_index_tax, true ) +
+				$tax_breakdown +
+				array_slice($price_parts, $price_part_index_tax, count($price_parts) - 1, true) ;
+		}
+	}
+	return $price_parts;
+}
+add_filter( 'pmpro_get_price_parts', 'pmproava_get_price_parts', 10, 2 );
+
+function pmproava_tax_breakdown_element_class( $class, $element ) {
+	if ( substr( $element, 0, 34 ) === "pmpro_price_part-avatax_breakdown_" ) {
+		$class[]= 'pmpro_price_part_breakdown';
+	}
+	return $class;
+}
+add_filter( 'pmpro_element_class', 'pmproava_tax_breakdown_element_class', 10, 2 );
