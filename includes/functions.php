@@ -139,6 +139,13 @@ function pmproava_get_transaction_code( $order ) {
 function pmproava_updated_order( $order ) {
 	global $wpdb;
 
+	// Save extra fields.
+	if ( pmpro_is_checkout() || ( is_admin() && $_REQUEST['page'] === 'pmpro-orders' && ! empty( $_REQUEST['save'] ) ) ) {
+		if ( isset( $_REQUEST['pmproava_vat_number'] ) ) {
+			update_pmpro_membership_order_meta( $order->id, 'pmproava_vat_number', sanitize_text_field( $_REQUEST['pmproava_vat_number'] ) );
+		}
+	}
+
 	// Check if gateway environments match for order and Avalara creds. If not, return.
 	if ( ! pmproava_environment_same_as_order_environment( $order ) ) {
 		return;

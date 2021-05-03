@@ -6,13 +6,6 @@ function pmproava_after_order_settings( $order ) {
 		return;
 	}
 
-	// This is temporary. We really need a hook in core for before an order is saved on the Edit Order page.
-	if ( ! empty( $_REQUEST['save'] ) ) {
-		if ( ! empty( $_REQUEST['pmproava_vat_number'] ) ) {
-			update_pmpro_membership_order_meta( $order->id, 'pmproava_vat_number', sanitize_text_field( $_REQUEST['pmproava_vat_number'] ) );
-		}
-	}
-
 	$pmproava_options     = pmproava_get_options();
 	$pmpro_avatax         = PMPro_AvaTax::get_instance();
 	$transaction_code     = pmproava_get_transaction_code( $order );

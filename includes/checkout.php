@@ -78,15 +78,3 @@ function pmproava_registration_checks( $okay ) {
 	return $okay;
 }
 add_filter( 'pmpro_registration_checks', 'pmproava_registration_checks', 10, 1 );
-
-function pmproava_enable_saving_vat_at_checkout() {
-	add_action( 'pmpro_added_order', 'pmroava_save_vat_at_checkout', 9, 1 );
-	add_action( 'pmpro_updated_order', 'pmroava_save_vat_at_checkout', 9, 1 );
-}
-add_action( 'pmpro_checkout_before_change_membership_level', 'pmproava_enable_saving_vat_at_checkout' );
-
-function pmroava_save_vat_at_checkout( $order ) {
-	if ( ! empty( $_REQUEST['pmproava_show_vat'] ) && ! empty( $_REQUEST['pmproava_vat_number'] ) ) {
-		update_pmpro_membership_order_meta( $order->id, 'pmproava_vat_number', sanitize_text_field( $_REQUEST['pmproava_vat_number'] ) );
-	}
-}
