@@ -372,7 +372,7 @@ add_filter( 'pmpro_get_price_parts', 'pmproava_get_price_parts', 10, 2 );
 
 function pmproava_tax_breakdown_element_class( $class, $element ) {
 	if ( substr( $element, 0, 34 ) === "pmpro_price_part-avatax_breakdown_" ) {
-		$class[]= 'pmpro_price_part_breakdown';
+		$class[]= 'pmpro_price_part_sub';
 	}
 	return $class;
 }
