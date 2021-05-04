@@ -3,25 +3,26 @@
 function pmproava_checkout_boxes() {
 	global $pmpro_level;
 
-	$options = pmproava_get_options();		
-	$vat_field = $options['vat_field'] === 'yes' ? true : false;
+	$options = pmproava_get_options();
 
+	$show_vat_fields = $options['vat_field'] === 'yes' && pmproava_get_product_address_model( $pmpro_level->id ) !== 'singleLocation';
 	if ( ! empty( $_REQUEST['pmproava_vat_number'] ) ) {
-		$pmproava_show_vat = true;
 		$pmproava_vat_number = sanitize_text_field( $_REQUEST['pmproava_vat_number'] );
 	} else {
-		$pmproava_show_vat = false;
 		$pmproava_vat_number = '';
 	}
 
-	if ( $vat_field ) {
+	// This variable should "and" all "show x field" options together.
+	$show_checkout_options = $show_vat_fields;
+
+	if ( $show_checkout_options ) {
 		?>
 		<div class="pmpro_checkout">
 			<h3><span class="pmpro_checkout-h3-name"><?php _e( 'Tax', 'pmpro-avatax' ); ?></span></h3>
 			<div class="pmpro_checkout-fields">
-			<?php if ( $vat_field ) { ?>
+			<?php if ( $show_vat_fields ) { ?>
 				<div id="pmproava_have_vat_number" class="pmpro_checkout-field pmpro_checkout-field-checkbox">
-					<input id="pmproava_show_vat" type="checkbox" name="pmproava_show_vat" value="1" <?php checked($pmproava_show_vat, 1);?>>
+					<input id="pmproava_show_vat" type="checkbox" name="pmproava_show_vat" value="1" <?php checked( ! empty( $pmproava_vat_number ), true );?>>
 					<label for="pmproava_show_vat" class="pmpro_clickable"><?php esc_html_e( 'Check if you have a VAT Number.', 'pmpro-avatax');?></label>
 				</div> <!-- end vat_have_number -->
 				<div id="pmproava_vat_number_div" class="pmpro_checkout-field">

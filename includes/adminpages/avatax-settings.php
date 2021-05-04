@@ -264,7 +264,7 @@ function pmproava_option_vat_field() {
 			<?php _e( 'No', 'pmpro-avatax' ); ?>
 		</option>
 	</select>
-	<p class="description"><?php _e( 'If your country has a VAT tax, enable this feature to collect VAT numbers at checkout.', 'pmpro-avatax' );?></p>
+	<p class="description"><?php _e( 'If your country has a VAT tax, enable this feature to collect VAT numbers at checkout when using the "Variable Location" address model.', 'pmpro-avatax' );?></p>
 	<?php
 }
 
