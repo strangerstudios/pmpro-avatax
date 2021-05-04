@@ -1,13 +1,6 @@
 <?php
-/**
- * Code to aid with user data privacy, e.g. GDPR compliance
- * 
- * @since  1.9.5
- */
-
 /** 
- * Add suggested Privacy Policy language for PMPro
- * @since 1.9.5
+ * Show reccomended language to include in TOS at checkout.
  */
 function pmproava_add_privacy_policy_content() {	
 	// Check for support.
