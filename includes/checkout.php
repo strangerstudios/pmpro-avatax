@@ -5,7 +5,7 @@ function pmproava_checkout_boxes() {
 
 	$options = pmproava_get_options();
 
-	$show_vat_fields = $options['vat_field'] === 'yes' && pmproava_get_product_address_model( $pmpro_level->id ) !== 'singleLocation';
+	$show_vat_fields = $options['vat_field'] === 'yes' && pmproava_get_product_address_model( $pmpro_level->id ) !== 'singleLocation' && ! pmpro_isLevelFree( $pmpro_level );
 	if ( ! empty( $_REQUEST['pmproava_vat_number'] ) ) {
 		$pmproava_vat_number = sanitize_text_field( $_REQUEST['pmproava_vat_number'] );
 	} else {
