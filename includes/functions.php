@@ -81,17 +81,6 @@ function pmproava_get_product_category( $level_id ) {
 }
 
 /**
- * Get the AvaTax address model for a particular level.
- *
- * @param int $level_id to get category for
- * @return string address model
- */
-function pmproava_get_product_address_model( $level_id ) {
-	$pmproava_address_model = get_pmpro_membership_level_meta( $level_id, 'pmproava_address_model', true);
-	return $pmproava_address_model ?: 'shipToFrom';
-}
-
-/**
  * Get the AvaTax customer code for a given user_id.
  *
  * @param int $user_id to get customer code for.
@@ -232,22 +221,13 @@ function pmproava_order_should_sync_with_transaction( $order, $transaction ) {
 		return true;
 	}
 
-	switch( pmproava_get_product_address_model( $order->membership_id ) ) {
-		case 'singleLocation':
-			$pmproava_options = pmproava_get_options();
-			$pmpro_address    = $pmproava_options['company_address'];
-			break;
-		case 'shipToFrom':
-			$pmpro_address             = new stdClass();
-			$pmpro_address->line1      = $order->billing->street;
-			$pmpro_address->city       = $order->billing->city;
-			$pmpro_address->region     = $order->billing->state;
-			$pmpro_address->postalCode = $order->billing->zip;
-			$pmpro_address->country    = $order->billing->country;
-			break;
-		default:
-			$pmpro_address = null;
-	}
+	$pmpro_address             = new stdClass();
+	$pmpro_address->line1      = $order->billing->street;
+	$pmpro_address->city       = $order->billing->city;
+	$pmpro_address->region     = $order->billing->state;
+	$pmpro_address->postalCode = $order->billing->zip;
+	$pmpro_address->country    = $order->billing->country;
+
 	$pmpro_avatax            = PMPro_AvaTax::get_instance();
 	$pmpro_address_validated = $pmpro_avatax->validate_address( $pmpro_address );
 	if ( empty( $pmpro_address_validated ) ) {

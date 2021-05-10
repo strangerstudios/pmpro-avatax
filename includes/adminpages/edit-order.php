@@ -62,7 +62,7 @@ function pmproava_after_order_settings( $order ) {
 						<td><a href="<?php echo $url ?>" target="_blank"><?php echo $url ?></a></td>
 					</tr>
 					<?php
-					if ( ! empty( $transaction->businessIdentificationNo ) || ( $pmproava_options['vat_field'] === 'yes' && pmproava_get_product_address_model( $order->membership_id ) !== 'singleLocation' ) ) {
+					if ( ! empty( $transaction->businessIdentificationNo ) || $pmproava_options['vat_field'] === 'yes' ) {
 						?>
 						<tr>
 							<th><?php esc_html_e( 'VAT Number', 'pmpro-avatax' ); ?></th>

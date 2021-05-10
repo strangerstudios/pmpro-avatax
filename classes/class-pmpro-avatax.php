@@ -80,7 +80,6 @@ class PMPro_AvaTax {
 		$default_args = array(
 			'price' => 0,
 			'product_category' => PMPROAVA_GENERAL_MERCHANDISE,
-			'product_address_model' => 'shipToFrom',
 			'billing_address' => null,
 			'document_type' => Avalara\DocumentType::C_SALESORDER,
 			'customer_code' => '0',
@@ -119,46 +118,31 @@ class PMPro_AvaTax {
 			$transaction_builder->withTransactionCode( $transaction_code );
 		}
 
-		// Set addresses for transaction.
-		switch ( $product_address_model ) {
-			case 'singleLocation':
-				$transaction_builder->withAddress(
-					'SingleLocation',
-					$validated_company_address->line1,
-					$validated_company_address->line2,
-					$validated_company_address->line3,
-					$validated_company_address->city,
-					$validated_company_address->region,
-					$validated_company_address->postalCode,
-					$validated_company_address->country
-				);
-				break;
-			case 'shipToFrom':
-				if ( empty( $validated_billing_address ) ) {
-					// Invalid address. Error would have been thrown in that function.
-					return null;
-				}
-				$transaction_builder->withAddress(
-					'shipTo',
-					$validated_billing_address->line1,
-					$validated_billing_address->line2,
-					$validated_billing_address->line3,
-					$validated_billing_address->city,
-					$validated_billing_address->region,
-					$validated_billing_address->postalCode,
-					$validated_billing_address->country
-				);
-				$transaction_builder->withAddress(
-					'shipFrom',
-					$validated_company_address->line1,
-					$validated_company_address->line2,
-					$validated_company_address->line3,
-					$validated_company_address->city,
-					$validated_company_address->region,
-					$validated_company_address->postalCode,
-					$validated_company_address->country
-				);
+		if ( empty( $validated_billing_address ) ) {
+			// Invalid address. Error would have been thrown in that function.
+			return null;
 		}
+
+		$transaction_builder->withAddress(
+			'shipTo',
+			$validated_billing_address->line1,
+			$validated_billing_address->line2,
+			$validated_billing_address->line3,
+			$validated_billing_address->city,
+			$validated_billing_address->region,
+			$validated_billing_address->postalCode,
+			$validated_billing_address->country
+		);
+		$transaction_builder->withAddress(
+			'shipFrom',
+			$validated_company_address->line1,
+			$validated_company_address->line2,
+			$validated_company_address->line3,
+			$validated_company_address->city,
+			$validated_company_address->region,
+			$validated_company_address->postalCode,
+			$validated_company_address->country
+		);
 
 		// Add product to transaction.
 		$transaction_builder->withLine(
@@ -232,7 +216,6 @@ class PMPro_AvaTax {
 		$args = array(
 			'price' => $order->total,
 			'product_category' => pmproava_get_product_category( $membership_level->id ),
-			'product_address_model' => pmproava_get_product_address_model( $membership_level->id ),
 			'billing_address' => $billing_address,
 			'document_type' => Avalara\DocumentType::C_SALESINVOICE,
 			'customer_code' => pmproava_get_customer_code( $order->user_id ),
