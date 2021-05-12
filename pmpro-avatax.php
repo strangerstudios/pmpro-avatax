@@ -1,15 +1,15 @@
 <?php
 /**
  * Plugin Name: Paid Memberships Pro - AvaTax Add On
- * Plugin URI: https://www.paidmembershipspro.com/add-ons/avatax-integration
- * Description: Integrate with Avalara Tax Services
- * Version: .1
+ * Plugin URI: https://www.paidmembershipspro.com/add-ons/avalara-avatax-integration
+ * Description: Integrate with Avalara AvaTax for automated sales and use tax calculation.
+ * Version: 0.1
  * Author: Paid Memberships Pro
  * Author URI: https://www.paidmembershipspro.com
- * Text Domain: pmpro-avalaavataxra
+ * Text Domain: pmpro-avatax
  */
 
-define( 'PMPROAVA_VERSION', '.1' );
+define( 'PMPROAVA_VERSION', '0.1' );
 define( 'PMPROAVA_DIR', dirname( __FILE__ ) );
 define( 'PMPROAVA_BASENAME', plugin_basename( __FILE__ ) );
 
@@ -60,15 +60,14 @@ add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'pmproava_add_
  * @param $file - main plugin filename
  * @return array - Array of links
  */
-function pmproava_plugin_row_meta($links, $file)
-{
-	if (strpos($file, 'pmpro-avatax.php') !== false) {
+function pmproava_plugin_row_meta( $links, $file ) {
+	if ( strpos( $file, 'pmpro-avatax.php' ) !== false ) {
 		$new_links = array(
-			'<a href="' . esc_url('https://www.paidmembershipspro.com/add-ons/pmpro-avatax-integration/') . '" title="' . esc_attr(__('View Documentation', 'pmpro-avatax')) . '">' . __('Docs', 'pmpro-avatax') . '</a>',
-			'<a href="' . esc_url('https://wwww.paidmembershipspro.com/support/') . '" title="' . esc_attr(__('Visit Customer Support Forum', 'pmpro-avatax')) . '">' . __('Support', 'pmpro-avatax') . '</a>',
+			'<a href="' . esc_url( 'https://www.paidmembershipspro.com/add-ons/avalara-avatax-integration/') . '" title="' . esc_attr( __( 'View Documentation', 'pmpro-avatax' ) ) . '">' . __( 'Docs', 'pmpro-avatax' ) . '</a>',
+			'<a href="' . esc_url( 'https://wwww.paidmembershipspro.com/support/' ) . '" title="' . esc_attr( __( 'Visit Customer Support Forum', 'pmpro-avatax' ) ) . '">' . __( 'Support', 'pmpro-avatax' ) . '</a>',
 		);
-		$links = array_merge($links, $new_links);
+		$links = array_merge( $links, $new_links );
 	}
 	return $links;
 }
-add_filter('plugin_row_meta', 'pmproava_plugin_row_meta', 10, 2);
+add_filter( 'plugin_row_meta', 'pmproava_plugin_row_meta', 10, 2 );

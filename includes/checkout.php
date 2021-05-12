@@ -21,13 +21,13 @@ function pmproava_checkout_boxes() {
 			<h3><span class="pmpro_checkout-h3-name"><?php _e( 'Tax', 'pmpro-avatax' ); ?></span></h3>
 			<div class="pmpro_checkout-fields">
 			<?php if ( $show_vat_fields ) { ?>
-				<div id="pmproava_have_vat_number" class="pmpro_checkout-field pmpro_checkout-field-checkbox">
+				<div id="pmproava_have_vat_number" class="pmpro_checkout-field pmpro_checkout-field-checkbox pmpro_checkout-field-pmproava_show_vat">
 					<input id="pmproava_show_vat" type="checkbox" name="pmproava_show_vat" value="1" <?php checked( ! empty( $pmproava_vat_number ), true );?>>
 					<label for="pmproava_show_vat" class="pmpro_clickable"><?php esc_html_e( 'Check if you have a VAT Number.', 'pmpro-avatax');?></label>
 				</div> <!-- end vat_have_number -->
-				<div id="pmproava_vat_number_div" class="pmpro_checkout-field">
-					<label for="pmproava_vat_number"><?php _e('Vat Number', 'pmpro-avatax');?></label>
-					<input id="pmproava_vat_number" name="pmproava_vat_number" class="input" type="text"  size="20" value="<?php echo esc_attr($pmproava_vat_number);?>" />					
+				<div id="pmproava_vat_number_div" class="pmpro_checkout-field pmpro_checkout-field-pmproava_vat_number">
+					<label for="pmproava_vat_number"><?php _e('VAT Number', 'pmpro-avatax');?></label>
+					<input id="pmproava_vat_number" name="pmproava_vat_number" class="input" type="text"  size="30" value="<?php echo esc_attr($pmproava_vat_number);?>" />					
 				</div> <!-- end vat_number_validation_tr -->
 			<?php } ?>
 			</div>			
