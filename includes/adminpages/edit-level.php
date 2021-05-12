@@ -12,25 +12,22 @@ function pmproava_level_settings( $level_id ) {
 
 	$pmproava_product_category = pmproava_get_product_category( $level_id );
   	?>
-  	<?php if( $level_id != 0 ) { ?>
-  		<h3 class="topborder"> <?php _e('Tax Category', 'pmpro-avatax');?></h3>
-  	<?php } ?>
+  		<hr />
+      <h2 class="title"><?php esc_html_e( 'Tax Category', 'pmpro-avatax' ); ?></h2>
   	<table id="product_id" class="form-table">
   		<tbody>
 			<tr>
   				<th scope="row" valign="top">
-  					<label for="pmproava_product_id"><?php _e('Product Category ID', 'pmpro-avatax');?>:</label>
+  					<label for="pmproava_product_id"><?php esc_html_e('Product Category ID', 'pmpro-avatax');?>:</label>
   				</th>
   				<td>
-  					<input type="text" name="pmproava_product_id" value=<?php echo $pmproava_product_category ?>><br>
-					<small><a href='https://taxcode.avatax.avalara.com'><?php _e('Product Category ID Reference', 'pmpro-avatax');?></a></small>
+  					<input type="text" name="pmproava_product_id" class="regular-text" value="<?php esc_attr_e( $pmproava_product_category ); ?>">
+  					<p class="description"><?php esc_html_e( 'Enter the Avalara Tax Code for this level.', 'pmpro-avatax' ); ?> <a target="_blank" href="https://taxcode.avatax.avalara.com"><?php esc_html_e( 'Product Category ID Reference &raquo;', 'pmpro-avatax' ); ?></a></p>
   				</td>
   			</tr>
 		</tbody>
   	</table>
   	<?php
-
-
 }
 add_action('pmpro_membership_level_after_other_settings','pmproava_level_settings');
 
