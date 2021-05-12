@@ -54,7 +54,7 @@ function pmproava_admin_init() {
 
 	add_settings_section('pmproava_section_settings', __('Settings', 'pmpro-avatax'), 'pmproava_section_settings', 'pmproava_options');
 	add_settings_field('pmproava_option_record_documents', __('Record Documents in AvaTax', 'pmpro-avatax'), 'pmproava_option_record_documents', 'pmproava_options', 'pmproava_section_settings');
-	add_settings_field('pmproava_option_vat_field', __('Show VAT Field at Checkout', 'pmpro-avatax'), 'pmproava_option_vat_field', 'pmproava_options', 'pmproava_section_settings');
+	add_settings_field('pmproava_option_vat_field', __('Collect VAT Number at Checkout', 'pmpro-avatax'), 'pmproava_option_vat_field', 'pmproava_options', 'pmproava_section_settings');
 	add_settings_field('pmproava_option_site_prefix', __('Site Prefix', 'pmpro-avatax'), 'pmproava_option_site_prefix', 'pmproava_options', 'pmproava_section_settings');
 }
 add_action("admin_init", "pmproava_admin_init");
@@ -238,12 +238,13 @@ function pmproava_option_record_documents() {
 	?>
 	<select id="pmproava_record_documents" name="pmproava_options[record_documents]">
 		<option value="yes" <?php selected( $record_documents, 'yes' ); ?>>
-			<?php esc_html_e( 'Yes - Send transactions to AvaTax.', 'pmpro-avatax' ); ?>
+			<?php esc_html_e( 'Yes', 'pmpro-avatax' ); ?>
 		</option>
 		<option value="no" <?php selected( $record_documents, 'no' ); ?>>
-			<?php esc_html_e( 'No - Do not send transactions to AvaTax.', 'pmpro-avatax' ); ?>
+			<?php esc_html_e( 'No', 'pmpro-avatax' ); ?>
 		</option>
 	</select>
+	<p class="description"><?php esc_html_e( 'When set to "No", PMPro will not send new orders to AvaTax or update existing transactions.', 'pmpro-avatax' );?></p>
 	<?php
 }
 
@@ -256,13 +257,12 @@ function pmproava_option_vat_field() {
 	?>
 	<select id="pmproava_vat_field" name="pmproava_options[vat_field]">
 		<option value="yes" <?php selected( $vat_field, 'yes' ); ?>>
-			<?php esc_html_e( 'Yes - Collect VAT numbers at checkout.', 'pmpro-avatax' ); ?>
+			<?php esc_html_e( 'Yes', 'pmpro-avatax' ); ?>
 		</option>
 		<option value="no" <?php selected( $vat_field, 'no' ); ?>>
-			<?php esc_html_e( 'No - Do not collect VAT numbers at checkout.', 'pmpro-avatax' ); ?>
+			<?php esc_html_e( 'No', 'pmpro-avatax' ); ?>
 		</option>
 	</select>
-	<p class="description"><?php esc_html_e( 'Enable this feature to collect VAT numbers at checkout.', 'pmpro-avatax' );?></p>
 	<?php
 }
 
