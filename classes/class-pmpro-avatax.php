@@ -332,7 +332,7 @@ class PMPro_AvaTax {
 
 	public function get_entity_use_codes() {
 		$entity_use_codes = $this->AvaTaxClient->listEntityUseCodes();
-		return $entity_use_codes->value;
+		return property_exists( $entity_use_codes, 'value' ) ? $entity_use_codes->value : array();
 	}
 
 	
