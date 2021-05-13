@@ -293,19 +293,27 @@ class PMPro_AvaTax {
 	 * @return object
 	 */
 	public function validate_address( $address, $force = false ) {
-		$pmproava_options = pmproava_get_options();
-		if ( 'no' === $pmproava_options['validate_address'] && ! $force ) {
-			return $address;
-		}
-
 		if ( empty( $address ) ) {
 			global $pmproava_error;
 			$pmproava_error = 'Error while validating address: No address was passed';
 			return null;
 		}
 
+		// Make sure that $address has a full address.
+		$address->line1      = isset( $address->line1 ) ? $address->line1 : '';
+		$address->line2      = isset( $address->line2 ) ? $address->line2 : '';
+		$address->line3      = isset( $address->line3 ) ? $address->line3 : '';
+		$address->city       = isset( $address->city ) ? $address->city : '';
+		$address->region     = isset( $address->region ) ? $address->region : '';
+		$address->postalCode = isset( $address->postalCode ) ? $address->postalCode : '';
+		$address->country    = isset( $address->country ) ? $address->country : '';
+
+
+		$pmproava_options = pmproava_get_options();
 		$countries_to_validate = array( 'us', 'united states', 'ca', 'canada', '' );
-		if ( isset( $address->country ) && ! in_array( strtolower( $address->country ), $countries_to_validate ) ) {
+		if ( ( 'no' === $pmproava_options['validate_address'] && ! $force ) || // We don't need to validate
+			! in_array( strtolower( $address->country ), $countries_to_validate ) // Address is not US or CA
+		) {
 			return $address;
 		}
 
@@ -316,13 +324,13 @@ class PMPro_AvaTax {
 		if ( empty( $response ) ) {
 			// We do not have a cached value. Validate via API.
 			$response = $this->AvaTaxClient->resolveAddress(
-				isset( $address->line1 ) ? $address->line1 : '',
-				isset( $address->line2 ) ? $address->line2 : '',
-				isset( $address->line3 ) ? $address->line3 : '',
-				isset( $address->city ) ? $address->city : '',
-				isset( $address->region ) ? $address->region : '',
-				isset( $address->postalCode ) ? $address->postalCode : '',
-				isset( $address->country ) ? $address->country : '',
+				$address->line1,
+				$address->line2,
+				$address->line3,
+				$address->city,
+				$address->region,
+				$address->postalCode,
+				$address->country,
 				'Mixed' // Text case.
 			);
 			set_transient( $address_cache_key, $response, 60 * 60 * 24 );
