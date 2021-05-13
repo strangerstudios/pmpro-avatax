@@ -15,31 +15,35 @@ function pmproava_show_extra_profile_fields( $user ) {
 	// Show the shipping fields if the membership level includes fields or the user is an admin.
 	if ( current_user_can( 'manage_options' ) ) { ?>
 	    <h3><?php esc_html_e( 'PMPro AvaTax', 'pmpro-avatax' ); ?></h3>
-	    <table class="form-table">
-	        <tr>
-	            <th><?php esc_html_e( 'Exempt From Tax', 'pmpro-avatax' ); ?></th>
-	            <td>
-                    <input id="pmproava_user_exempt_present" name="pmproava_user_exempt_present" type="hidden" value='1' />
-	                <input id="pmproava_user_exempt" name="pmproava_user_exempt" type="checkbox" <?php checked( $exempt ); ?>/>
-	            </td>
-	        </tr>
-            <tr id='pmproava_user_exemption_reason_tr'>
-	            <th><?php esc_html_e( 'Exemption Reason', 'pmpro-avatax' ); ?></th>
-	            <td>
-	                <select id="pmproava_user_exemption_reason" name="pmproava_user_exemption_reason">
-                    <?php
-                        foreach ( $entity_use_codes as $entity_use_code ) {
-                            $selected_modifier = ( $exemption_reason == $entity_use_code->code ) ? ' selected ' : '';
-                            ?>
-                            <option value="<?php esc_html_e( $entity_use_code->code ) ?>" <?php echo $selected_modifier ?>><?php esc_html_e( $entity_use_code->name ) ?></option>
-                            <?php
-                        }
-                    ?>
-                    </select>
-	            </td>
-	        </tr>
-	    </table>
+        <?php if ( $pmpro_avatax->check_credentials() ) { ?>
+            <table class="form-table">
+                <tr>
+                    <th><?php esc_html_e( 'Exempt From Tax', 'pmpro-avatax' ); ?></th>
+                    <td>
+                        <input id="pmproava_user_exempt_present" name="pmproava_user_exempt_present" type="hidden" value='1' />
+                        <input id="pmproava_user_exempt" name="pmproava_user_exempt" type="checkbox" <?php checked( $exempt ); ?>/>
+                    </td>
+                </tr>
+                <tr id='pmproava_user_exemption_reason_tr'>
+                    <th><?php esc_html_e( 'Exemption Reason', 'pmpro-avatax' ); ?></th>
+                    <td>
+                        <select id="pmproava_user_exemption_reason" name="pmproava_user_exemption_reason">
+                        <?php
+                            foreach ( $entity_use_codes as $entity_use_code ) {
+                                $selected_modifier = ( $exemption_reason == $entity_use_code->code ) ? ' selected ' : '';
+                                ?>
+                                <option value="<?php esc_html_e( $entity_use_code->code ) ?>" <?php echo $selected_modifier ?>><?php esc_html_e( $entity_use_code->name ) ?></option>
+                                <?php
+                            }
+                        ?>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+        <?php } else { ?>
+            <p><?php esc_html_e( 'AvaTax credentials are not valid.', 'pmpro-avatax' ); ?></p>
 		<?php
+        }
 	}
 }
 add_action( 'show_user_profile', 'pmproava_show_extra_profile_fields' );
