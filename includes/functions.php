@@ -25,6 +25,8 @@ function pmproava_get_options() {
 			'company_code'     => '',
 			'company_address'  => $default_address,
 			'record_documents' => 'yes',
+			'vat_field'        => 'no',
+			'validate_address' => 'yes',
 			'site_prefix'      => 'PMPRO',
 		);
 		$options = array_merge( $default_options, $set_options );
@@ -61,6 +63,11 @@ function pmproava_options_validate($input) {
 		$newinput['vat_field'] = 'no';
 	} elseif ( isset( $input['vat_field'] ) ) {
 		$newinput['vat_field'] = 'yes';
+	}
+	if ( isset($input['validate_address']) && $input['validate_address'] === 'no' ) {
+		$newinput['validate_address'] = 'no';
+	} elseif ( isset( $input['validate_address'] ) ) {
+		$newinput['validate_address'] = 'yes';
 	}
 	if ( isset($input['site_prefix'] ) ) {
 		$newinput['site_prefix'] = trim( preg_replace("[^a-zA-Z0-9\-]", "", $input['site_prefix'] ) );

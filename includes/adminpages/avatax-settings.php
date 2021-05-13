@@ -55,6 +55,7 @@ function pmproava_admin_init() {
 	add_settings_section('pmproava_section_settings', __('Settings', 'pmpro-avatax'), 'pmproava_section_settings', 'pmproava_options');
 	add_settings_field('pmproava_option_record_documents', __('Record Documents in AvaTax', 'pmpro-avatax'), 'pmproava_option_record_documents', 'pmproava_options', 'pmproava_section_settings');
 	add_settings_field('pmproava_option_vat_field', __('Collect VAT Number at Checkout', 'pmpro-avatax'), 'pmproava_option_vat_field', 'pmproava_options', 'pmproava_section_settings');
+	add_settings_field('pmproava_option_validate_address', __('Validate Address at Checkout', 'pmpro-avatax'), 'pmproava_option_validate_address', 'pmproava_options', 'pmproava_section_settings');
 	add_settings_field('pmproava_option_site_prefix', __('Site Prefix', 'pmpro-avatax'), 'pmproava_option_site_prefix', 'pmproava_options', 'pmproava_section_settings');
 }
 add_action("admin_init", "pmproava_admin_init");
@@ -128,7 +129,7 @@ function pmproava_section_company() {
 
 	// Check if company address is valid. If not, show warning.
 	$pmpro_avatax = PMPro_Avatax::get_instance();
-	if ( null === $pmpro_avatax->validate_address( $options['company_address'] ) ) {
+	if ( null === $pmpro_avatax->validate_address( $options['company_address'], true ) ) {
 		?>
 		<div class="notice notice-error">
 			<p><strong><?php esc_html_e( 'Invalid Company Address.', 'pmpro-avatax' ); ?></strong></p>
@@ -263,6 +264,25 @@ function pmproava_option_vat_field() {
 			<?php esc_html_e( 'No', 'pmpro-avatax' ); ?>
 		</option>
 	</select>
+	<?php
+}
+
+/**
+ * Show "Show VAT Field at Checkout" field.
+ */
+function pmproava_option_validate_address() {
+	$options = pmproava_get_options();	
+	$validate_address = $options['validate_address'];
+	?>
+	<select id="pmproava_validate_address" name="pmproava_options[validate_address]">
+		<option value="yes" <?php selected( $validate_address, 'yes' ); ?>>
+			<?php esc_html_e( 'Yes', 'pmpro-avatax' ); ?>
+		</option>
+		<option value="no" <?php selected( $validate_address, 'no' ); ?>>
+			<?php esc_html_e( 'No', 'pmpro-avatax' ); ?>
+		</option>
+	</select>
+	<p class="description"><?php esc_html_e( 'Only addresses in the United States and Canada will be validated at checkout.', 'pmpro-avatax' );?></p>
 	<?php
 }
 

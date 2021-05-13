@@ -289,13 +289,24 @@ class PMPro_AvaTax {
 	 * Validate an address.
 	 *
 	 * @param object $address of buyer
+	 * @param bool $force validation of the address, regarless of if disabled.
 	 * @return object
 	 */
-	public function validate_address( $address ) {
+	public function validate_address( $address, $force = false ) {
+		$pmproava_options = pmproava_get_options();
+		if ( 'no' === $pmproava_options['validate_address'] && ! $force ) {
+			return $address;
+		}
+
 		if ( empty( $address ) ) {
 			global $pmproava_error;
 			$pmproava_error = 'Error while validating address: No address was passed';
 			return null;
+		}
+
+		$countries_to_validate = array( 'us', 'united states', 'ca', 'canada', '' );
+		if ( isset( $address->country ) && ! in_array( strtolower( $address->country ), $countries_to_validate ) ) {
+			return $address;
 		}
 
 		$address_cache_hash = wp_hash( serialize( $address ) );
