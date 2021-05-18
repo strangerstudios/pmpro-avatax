@@ -264,6 +264,7 @@ function pmproava_option_vat_field() {
 			<?php esc_html_e( 'No', 'pmpro-avatax' ); ?>
 		</option>
 	</select>
+	<p class="description"><?php esc_html_e( 'Set to "Yes" if you need to collect and calculate VAT.', 'pmpro-avatax' );?></p>
 	<?php
 }
 
