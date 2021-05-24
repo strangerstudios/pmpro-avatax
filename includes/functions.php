@@ -71,7 +71,11 @@ function pmproava_options_validate($input) {
 	}
 	if ( isset($input['site_prefix'] ) ) {
 		$newinput['site_prefix'] = trim( preg_replace("[^a-zA-Z0-9\-]", "", $input['site_prefix'] ) );
-	}	
+	}
+
+	delete_transient( 'pmproava_credentials_valid' );
+	delete_transient( 'pmproava_entity_use_codes' );
+
 	return $newinput;
 }
 

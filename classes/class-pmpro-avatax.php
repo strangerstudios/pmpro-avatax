@@ -278,11 +278,12 @@ class PMPro_AvaTax {
 	 * @return bool
 	 */
 	public function check_credentials() {
-		static $credentials_valid = null;
-		if ( $credentials_valid === null ) {
-			$credentials_valid = $this->AvaTaxClient->ping()->authenticated;
+		$credentials_valid = get_transient( 'pmproava_credentials_valid' );
+		if ( $credentials_valid === false ) {
+			$credentials_valid = $this->AvaTaxClient->ping()->authenticated ? 'yes' : 'no';
+			set_transient( 'pmproava_credentials_valid', $credentials_valid );
 		}
-		return $credentials_valid;
+		return $credentials_valid === 'yes';
 	}
 
 	/**
@@ -350,8 +351,13 @@ class PMPro_AvaTax {
 	}
 
 	public function get_entity_use_codes() {
-		$entity_use_codes = $this->AvaTaxClient->listEntityUseCodes();
-		return property_exists( $entity_use_codes, 'value' ) ? $entity_use_codes->value : array();
+		$pmproava_entity_use_codes = get_transient( 'pmproava_entity_use_codes' );
+		if ( $pmproava_entity_use_codes === false ) {
+			$pmproava_entity_use_codes_raw = $this->AvaTaxClient->listEntityUseCodes();
+			$pmproava_entity_use_codes = property_exists( $pmproava_entity_use_codes_raw, 'value' ) ? $pmproava_entity_use_codes_raw->value : array();
+			set_transient( 'pmproava_entity_use_codes', $pmproava_entity_use_codes );
+		}
+		return $pmproava_entity_use_codes;
 	}
 
 	
