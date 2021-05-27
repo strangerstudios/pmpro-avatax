@@ -337,6 +337,14 @@ function pmproava_vat_number_for_orders_csv( $order ) {
 	return empty( $vat_number ) ? '' : $vat_number;
 }
 
+function pmproava_pmpro_invoice_bullets_bottom( $order ) {	
+	$vat_number = get_pmpro_membership_order_meta( $order->id, 'pmproava_vat_number', true );
+	if ( ! empty( $vat_number ) ) {
+		?><li><strong><?php _e('VAT Number: ', 'pmpro-avatax');?></strong><?php echo $vat_number;?></li><?php
+	}
+}
+add_action('pmpro_invoice_bullets_bottom', 'pmproava_pmpro_invoice_bullets_bottom');
+
 function pmproava_get_price_parts( $price_parts, $invoice ) {
 	if ( ! empty( $price_parts['tax'] ) ) {
 		$pmpro_avatax            = PMPro_AvaTax::get_instance();
