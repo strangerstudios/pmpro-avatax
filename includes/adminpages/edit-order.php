@@ -18,64 +18,64 @@ function pmproava_after_order_settings( $order ) {
 	<tr>
 		<th><?php esc_html_e( 'AvaTax', 'pmpro-avatax' ); ?></th>
 		<td>
-			<table>
-				<tr>
-					<th><?php esc_html_e( 'Transaction Code', 'pmpro-avatax' ); ?></th>
-					<td><?php esc_html_e( $transaction_code ); ?></td>
-				</tr>
+			<ul>
+				<li>
+					<strong><?php esc_html_e( 'Transaction Code', 'pmpro-avatax' ); ?>:</strong>
+					<?php esc_html_e( $transaction_code ); ?>
+				</li>
 				<?php 
 				$error = pmproava_get_order_error( $order );
 				if ( empty( $error ) ) {
 					?>
-					<tr>
-						<th><?php esc_html_e( 'Last Updated', 'pmpro-avatax' ); ?></th>
-						<td><?php esc_html_e( $last_sync ); ?></td>
-					</tr>
+					<li>
+						<strong><?php esc_html_e( 'Last Updated', 'pmpro-avatax' ); ?>:</strong>
+						<?php esc_html_e( $last_sync ); ?>
+					</li>
 					<?php
 				} else {
 					?>
-					<tr>
-						<th><?php esc_html_e( 'Error', 'pmpro-avatax' ); ?></th>
-						<td><?php esc_html_e( $error ); ?></td>
-					</tr>
-					<tr>
-						<th><?php esc_html_e( 'Last Successful Update', 'pmpro-avatax' ); ?></th>
-						<td><?php esc_html_e( $last_sync ); ?></td>
-					</tr>
+					<li>
+						<strong><?php esc_html_e( 'Error', 'pmpro-avatax' ); ?>:</strong>
+						<?php esc_html_e( $error ); ?>
+					</li>
+					<li>
+						<strong><?php esc_html_e( 'Last Successful Update', 'pmpro-avatax' ); ?>:</strong>
+						<?php esc_html_e( $last_sync ); ?>
+					</li>
 					<?php
 				}
 				if ( ! empty( $transaction ) && empty( $transaction->error ) ) {
 					?>
-					<tr>
-						<th><?php esc_html_e( 'Customer Code', 'pmpro-avatax' ); ?></th>
-						<td><?php esc_html_e( $transaction->customerCode); ?></td>
-					</tr>
-					<tr>
-						<th><?php esc_html_e( 'Locked', 'pmpro-avatax' ); ?></th>
-						<td><?php esc_html_e( $transaction->locked ? __( 'Yes', 'pmpro-avatax' ) : __( 'No', 'pmpro-avatax' ) ); ?></td>
-					</tr>
-					<tr>
-						<th><?php esc_html_e( 'URL', 'pmpro-avatax' ); ?></th>
+					<li>
+						<strong><?php esc_html_e( 'Customer Code', 'pmpro-avatax' ); ?>:</strong>
+						<?php esc_html_e( $transaction->customerCode); ?>
+					</li>
+					<li>
+						<strong><?php esc_html_e( 'Locked', 'pmpro-avatax' ); ?>:</strong>
+						<?php esc_html_e( $transaction->locked ? __( 'Yes', 'pmpro-avatax' ) : __( 'No', 'pmpro-avatax' ) ); ?>
+					</li>
+					<li>
+						<strong><?php esc_html_e( 'URL', 'pmpro-avatax' ); ?>:</strong>
 						<?php
 						$url = 'https://' . ( $pmproava_options['environment'] != 'production' ? 'sandbox.' : '' ) . 'admin.avalara.com/cup/a/' . $pmproava_options['account_number'] . '/c/' . $transaction->companyId . '/transactions/' . $transaction->id;
 						?>
-						<td><a href="<?php echo $url ?>" target="_blank"><?php echo $url ?></a></td>
-					</tr>
+						<a href="<?php echo $url ?>" target="_blank"><?php echo $url ?></a>
+					</li>
 					<?php
 					if ( ! empty( $transaction->businessIdentificationNo ) || $pmproava_options['vat_field'] === 'yes' ) {
 						?>
-						<tr>
-							<th><?php esc_html_e( 'VAT Number', 'pmpro-avatax' ); ?></th>
+						<li>
+							<strong><?php esc_html_e( 'VAT Number', 'pmpro-avatax' ); ?>:</strong>
 							<?php
 								$vat_number = get_pmpro_membership_order_meta( $order->id, 'pmproava_vat_number', true );
 							?>
-							<td><input id="pmproava_vat_number" name="pmproava_vat_number" type="text" size="50" value="<?php echo esc_attr( $vat_number ); ?>"/></td>
-						</tr>
+							<input id="pmproava_vat_number" name="pmproava_vat_number" type="text" size="50" value="<?php echo esc_attr( $vat_number ); ?>"/>
+						</li>
 						<?php
 					}
 				}
 				?>
-			</table>
+			</ul>
 		</td>
 	</tr>
 	<?php
