@@ -37,6 +37,13 @@ This is an official Add On for [Paid Memberships Pro](https://www.paidmembership
 1. Complete the fields with your "Company" information and configure additional options.
 1. Save settings.
 
+== Screenshots ==
+
+1. Enter your AvaTax Credentials on the Memberships > AvaTax screen to connect your membership site to your Avalara account.
+2. Enter your Company details on the Memberships > AvaTax screen based on the information in your AvaTax profile.
+3. Customize additional settings for your AvaTax membership site setup.
+4. Enter a tax code for each membership level product being sold on the Memberships > Settings > Levels > Edit Level page in the WordPress admin.
+
 == Changelog ==
 
 = 0.1 =
