@@ -14,7 +14,7 @@ function pmproava_show_extra_profile_fields( $user ) {
 
 	// Show the shipping fields if the membership level includes fields or the user is an admin.
 	if ( current_user_can( 'manage_options' ) ) { ?>
-	    <h3><?php esc_html_e( 'PMPro AvaTax', 'pmpro-avatax' ); ?></h3>
+	    <h2><?php esc_html_e( 'PMPro AvaTax', 'pmpro-avatax' ); ?></h2>
         <?php if ( $pmpro_avatax->check_credentials() ) { ?>
             <table class="form-table">
                 <tr>

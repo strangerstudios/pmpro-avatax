@@ -18,7 +18,7 @@ function pmproava_checkout_boxes() {
 	if ( $show_checkout_options ) {
 		?>
 		<div class="pmpro_checkout">
-			<h3><span class="pmpro_checkout-h3-name"><?php _e( 'Tax', 'pmpro-avatax' ); ?></span></h3>
+			<h2><span class="pmpro_checkout-h2-name"><?php _e( 'Tax', 'pmpro-avatax' ); ?></span></h2>
 			<div class="pmpro_checkout-fields">
 			<?php if ( $show_vat_fields ) { ?>
 				<div id="pmproava_have_vat_number" class="pmpro_checkout-field pmpro_checkout-field-checkbox pmpro_checkout-field-pmproava_show_vat">
