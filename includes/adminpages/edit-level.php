@@ -3,10 +3,12 @@
  * Add settings to edit level page.
  *
  */
-function pmproava_level_settings( $level_id ) {
-	if ( empty( $level_id ) && isset( $_REQUEST['edit'] ) ) {
+function pmproava_level_settings( $level ) {
+	if ( ! empty( $level ) ) {
+		$level_id = $level->id;
+	} elseif ( empty( $level ) && isset( $_REQUEST['edit'] ) ) {
 		$level_id = intval( $_REQUEST['edit'] );
-	} elseif ( ! isset( $level_id ) ) {
+	} elseif ( ! isset( $level ) ) {
 		$level_id = -1;
 	}
 	$pmproava_product_category = pmproava_get_product_category( $level_id );
